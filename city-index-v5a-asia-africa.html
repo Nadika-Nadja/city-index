@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City Index — Asia & Africa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f0e8;--surface:#faf7f2;--surface2:#ede8de;--border:#d4cdc0;
+  --border-dark:#b0a898;--text:#1a1714;--muted:#7a7168;
+  --accent:#8b3a2a;--accent2:#2a5c8b;
+  --good:#2a7a4a;--mid:#8b6a2a;--poor:#8b2a2a;--eco:#1a5c3a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-weight:300}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:0.4}
+header{padding:2.5rem 2.5rem 1.5rem;max-width:1500px;margin:0 auto;border-bottom:2px solid var(--text)}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3vw,2.8rem);line-height:1.1;font-weight:700}
+h1 em{color:var(--accent);font-style:italic}
+.header-meta{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted);text-align:right;line-height:1.9}
+.tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;padding:0.18rem 0.55rem;letter-spacing:0.07em;margin-bottom:0.35rem;margin-right:0.3rem}
+.tag-red{background:var(--accent);color:white}
+.tag-green{background:var(--eco);color:white}
+.header-sub{margin-top:0.9rem;max-width:820px;font-size:0.82rem;color:var(--muted);line-height:1.75;border-top:1px solid var(--border);padding-top:0.9rem}
+
+/* Methodology panel */
+.method-panel{max-width:1500px;margin:0 auto;border-bottom:1px solid var(--border)}
+.method-toggle{width:100%;background:var(--surface2);border:none;cursor:pointer;padding:0.85rem 2.5rem;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.06em;display:flex;justify-content:space-between;align-items:center}
+.method-toggle:hover{background:var(--border)}
+.method-body{display:none;padding:2rem 2.5rem;background:var(--surface);border-top:1px solid var(--border)}
+.method-body.open{display:block}
+.method-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
+.method-section h4{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;margin-bottom:0.6rem;color:var(--text)}
+.method-section p{font-size:0.78rem;line-height:1.7;color:var(--muted)}
+.method-section p+p{margin-top:0.5rem}
+.method-callout{background:var(--surface2);border-left:3px solid var(--eco);padding:1rem 1.25rem;margin-top:1.5rem;font-size:0.78rem;line-height:1.7;color:var(--text)}
+
+/* Controls */
+.controls{max-width:1500px;margin:0 auto;padding:0.9rem 2.5rem;display:flex;flex-wrap:wrap;gap:0.35rem;align-items:center;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.ctrl-label{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);letter-spacing:0.06em;margin-right:0.2rem}
+.sort-btn{background:none;border:1px solid var(--border-dark);color:var(--muted);padding:0.25rem 0.6rem;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+.sort-btn:hover{border-color:var(--accent);color:var(--accent)}
+.sort-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.sort-btn.eco-btn{border-color:var(--eco);color:var(--eco)}
+.sort-btn.eco-btn.active{background:var(--eco);color:white}
+.view-toggle{margin-left:auto;display:flex;gap:0.35rem}
+.view-btn{background:none;border:1px solid var(--border-dark);color:var(--muted);padding:0.25rem 0.6rem;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;cursor:pointer;transition:all 0.15s}
+.view-btn.active{background:var(--accent2);color:white;border-color:var(--accent2)}
+
+/* Filter row */
+.filter-row{max-width:1500px;margin:0 auto;padding:0.55rem 2.5rem;display:flex;gap:0.35rem;align-items:center;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.filter-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:0.18rem 0.55rem;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;cursor:pointer;transition:all 0.15s}
+.filter-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.filter-btn.active{background:var(--accent2);color:white;border-color:var(--accent2)}
+
+/* Legend */
+.legend-bar{display:flex;gap:1.1rem;align-items:center;padding:0.65rem 2.5rem;max-width:1500px;margin:0 auto;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted);flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--surface)}
+.legend-item{display:flex;align-items:center;gap:0.3rem}
+.legend-swatch{width:16px;height:8px}
+.ldiv{width:1px;height:14px;background:var(--border)}
+
+/* Cards */
+main{max-width:1500px;margin:0 auto;padding:1.25rem 2.5rem}
+.city-card{border:1px solid var(--border);margin-bottom:0.55rem;background:var(--surface);overflow:hidden;transition:border-color 0.15s}
+.city-card:hover{border-color:var(--border-dark);box-shadow:2px 2px 0 var(--border)}
+.city-card.expanded{border-color:var(--text)}
+.city-card.hidden{display:none}
+.card-header{display:grid;grid-template-columns:3.2rem 1fr auto;align-items:stretch;cursor:pointer;min-height:3.6rem}
+.rank-col{display:flex;align-items:center;justify-content:center;background:var(--surface2);border-right:1px solid var(--border)}
+.rank-num{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--border-dark);font-weight:700}
+.rank-num.r1{color:var(--accent);font-size:1.85rem}
+.rank-num.r2{color:var(--text);font-size:1.65rem}
+.rank-num.r3{color:var(--muted);font-size:1.55rem}
+.city-info{padding:0.65rem 1.1rem;display:flex;flex-direction:column;justify-content:center;gap:0.18rem}
+.city-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700}
+.city-tags{display:flex;gap:0.3rem;flex-wrap:wrap;align-items:center;margin-top:0.1rem}
+.city-state-tag,.tier-tag{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);padding:0.07rem 0.32rem}
+.region-tag{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;border:1px solid var(--border);padding:0.07rem 0.32rem;color:var(--muted)}
+.gap-badge{font-family:'IBM Plex Mono',monospace;font-size:0.56rem;padding:0.07rem 0.4rem;letter-spacing:0.04em;font-weight:500}
+.gap-low{background:#d4edda;color:var(--good);border:1px solid #a8d5b5}
+.gap-mid{background:#fef3cd;color:var(--mid);border:1px solid #e8d08a}
+.gap-high{background:#fde8e8;color:var(--poor);border:1px solid #e8aaaa}
+.score-panel{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding:0.55rem 1.1rem;border-left:1px solid var(--border);min-width:190px;gap:0.3rem}
+.score-row{display:flex;align-items:baseline;gap:0.65rem}
+.total-score-big{font-family:'Playfair Display',serif;font-size:1.85rem;font-weight:700;line-height:1}
+.eco-badge{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:0.13rem 0.4rem;font-weight:500}
+.score-bar-track{width:100%;height:2px;background:var(--border)}
+.score-bar-fill{height:100%;background:var(--text);transition:width 0.5s}
+.mini-scores{display:flex;gap:0.15rem;flex-wrap:wrap;justify-content:flex-end}
+.mini-pip{width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:0.44rem;font-weight:500}
+
+/* Card body */
+.card-body{display:none;border-top:1px solid var(--border)}
+.city-card.expanded .card-body{display:block}
+.verdict-strip{padding:0.85rem 1.35rem;background:var(--text);color:var(--bg);font-family:'Playfair Display',serif;font-style:italic;font-size:0.86rem;line-height:1.6}
+.gap-section{padding:0.7rem 1.35rem;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:1.5rem;flex-wrap:wrap}
+.gap-block{flex:1;min-width:170px}
+.gap-title{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;letter-spacing:0.09em;color:var(--muted);margin-bottom:0.3rem;text-transform:uppercase}
+.gap-text{font-size:0.73rem;line-height:1.55}
+.dims-section{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.dim-block{padding:0.85rem 1.05rem;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.dim-block.eco-block{background:#f0f7f2;border-left:3px solid var(--eco)}
+.eco-standalone-label{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;background:var(--eco);color:white;padding:0.08rem 0.3rem;letter-spacing:0.05em;display:inline-block;margin-bottom:0.28rem}
+.dim-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.4rem}
+.dim-name{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)}
+.dim-score{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700}
+.dim-score.good{color:var(--good)}.dim-score.mid{color:var(--mid)}.dim-score.poor{color:var(--poor)}.dim-score.eco-s{color:var(--eco)}
+.dim-bar-track{height:2px;background:var(--border);margin-bottom:0.45rem}
+.dim-bar-fill{height:100%}
+.dim-note{font-size:0.7rem;line-height:1.55;color:var(--muted)}
+.economy-block{grid-column:span 2}
+.econ-subsplit{display:flex;gap:1.1rem;margin-bottom:0.45rem}
+.econ-sub{flex:1}
+.econ-sub-label{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);margin-bottom:0.15rem}
+.econ-sub-score{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700}
+.econ-sub-bar{height:2px;background:var(--border);margin-top:0.18rem}
+.econ-sub-bar-fill{height:100%}
+
+/* Heatmap */
+#heatmap-view{display:none}
+.heatmap-wrap{overflow-x:auto}
+.hm-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:0.65rem}
+.hm-table th{padding:0.4rem 0.45rem;text-align:left;background:var(--text);color:var(--bg);font-weight:500;font-size:0.58rem;letter-spacing:0.05em;white-space:nowrap}
+.hm-table th.eco-th{background:var(--eco)}
+.hm-table td{padding:0.4rem 0.45rem;border:1px solid var(--border);text-align:center;font-size:0.65rem;font-weight:500}
+.hm-table tr:hover td{opacity:0.82}
+.city-td{text-align:left!important;font-family:'Playfair Display',serif;font-size:0.82rem!important;font-weight:700!important;background:var(--surface)!important;white-space:nowrap}
+.total-td{font-family:'Playfair Display',serif;font-size:0.9rem!important;font-weight:700!important}
+.eco-td{border-left:2px solid var(--eco)!important}
+.gap-td{font-size:0.52rem!important;white-space:nowrap}
+
+footer{max-width:1500px;margin:2rem auto 0;padding:1.25rem 2.5rem;border-top:2px solid var(--text);font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--muted);line-height:1.9;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+footer h4{font-size:0.6rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--text);margin-bottom:0.4rem}
+@media(max-width:800px){
+  .card-header{grid-template-columns:2.8rem 1fr}
+  .score-panel{display:none}
+  .dims-section{grid-template-columns:1fr}
+  .economy-block{grid-column:span 1}
+  footer{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div>
+        <span class="tag tag-red">ASIA + AFRICA EDITION</span>
+        <span class="tag tag-green">ECOLOGY AT HALF WEIGHT</span>
+      </div>
+      <h1>City Index<br><em>Ground Reality</em></h1>
+    </div>
+    <div class="header-meta">
+      v5a — Feb 2026<br>
+      32 cities · South Asia + East Asia + Africa<br>
+      8 scored dimensions + Ecology (½ weight)<br>
+      PPP-adjusted cost vs life<br>
+      Heritage: Dravidian bias-corrected<br>
+      Europe/Americas: separate file (v5b)
+    </div>
+  </div>
+  <div class="header-sub">
+    South Asia (22 cities) alongside East Asia (Tokyo, Singapore, Seoul, Shanghai, Beijing, Chongqing) and Africa (Casablanca, Addis Ababa, Durban, Tripoli). Ecology is scored at half weight — it matters, but its causes are historically unequal. See methodology note below.
+  </div>
+</header>
+
+<div class="method-panel">
+  <button class="method-toggle" onclick="toggleMethod(this)">
+    <span>▶ HOW TO READ THIS INDEX — METHODOLOGY, COLONIAL HISTORY, ECOLOGY WEIGHTING, PPP ADJUSTMENT</span>
+    <span style="font-size:0.75rem">CLICK TO EXPAND</span>
+  </button>
+  <div class="method-body" id="method-body">
+    <div class="method-grid">
+      <div class="method-section">
+        <h4>8 Scored Dimensions</h4>
+        <p>Transport · Public Space · Cleanliness · Cost vs Life · Economy Scale · Economy Resilience · Leisure · Openness · Heritage. Economy feeds the score as the average of Scale and Resilience. All 8 dimensions weighted equally. Overall score = arithmetic mean.</p>
+        <p>Cost vs Life is PPP-adjusted — median rent as a fraction of median wage, in local purchasing power terms. A Tokyo apartment at ¥120,000/month and a Chennai apartment at ₹20,000/month are compared on what fraction of median local wages each represents, not absolute currency.</p>
+      </div>
+      <div class="method-section">
+        <h4>🌿 Ecology at Half Weight</h4>
+        <p>Ecology is scored on present reality — residents breathe present air, drink present water. But ecology's causes are not historically uniform, and the score should be read accordingly.</p>
+        <p>The Thames was biologically dead in 1957. The Cuyahoga river in Cleveland caught fire in 1969. Every currently "clean" Western city followed the same sequence: industrialise, accumulate wealth, remediate. That sequence was not available to post-colonial cities.</p>
+        <p>British colonial policy in India was not ecologically neutral. Canal irrigation for export agriculture drew down river flows. Deforestation for railway sleepers stripped catchment areas that fed rivers Indian cities now sit on degraded versions of. Post-independence governments inherited infrastructure designed for colonial extraction, not liveable urbanism — and they inherited the fiscal constraints that came with it.</p>
+      </div>
+      <div class="method-section">
+        <h4>Singapore, Seoul, Tokyo — Context</h4>
+        <p>Singapore in 1965 had indicators comparable to Colombo or Penang. Its subsequent ecological and infrastructural trajectory was enabled by city-state governance, concentrated fiscal resources, and a position in global trade that post-colonial cities were structurally excluded from accessing.</p>
+        <p>Tokyo's river restoration and Seoul's Cheonggyecheon stream recovery are real achievements — but they were made possible by the wealth generated by the same industrialisation that degraded those rivers first. The scores are honest; the context explains the work required to get there.</p>
+      </div>
+      <div class="method-section">
+        <h4>Africa — Colonial Infrastructure Debt</h4>
+        <p>Durban, Addis Ababa, Casablanca, and Tripoli carry ecological and infrastructure stress that is inseparable from the deficits colonial economies created and the debt structures that constrain post-colonial governments from addressing them.</p>
+        <p>Tripoli's inclusion is deliberate. It documents what political failure and conflict cost in urban human terms. The scores are not a judgement on its residents — they are a documentation of what governance collapse means for a city with real heritage and real people.</p>
+      </div>
+      <div class="method-section">
+        <h4>On Heritage Scoring</h4>
+        <p>Corrected for systematic bias in rankings that overweight Mughal-era monument aesthetics and photogenic tourism sites. This index weights civilisational continuity (how long continuously inhabited), living heritage (tradition still practiced, not just preserved), and geographic footprint (did this culture influence regions beyond itself).</p>
+        <p>Under these criteria, Dravidian temple urbanism, maritime Christian heritage, and syncretic court traditions score higher than pure monument count. Madurai's 9.0 reflects 2,500+ years of continuous habitation and living ritual practice. It is not ranked below Delhi's 9.0 because Dravidian heritage is less significant — it is differently significant.</p>
+      </div>
+      <div class="method-section">
+        <h4>China — Openness Scoring</h4>
+        <p>Chinese cities (Shanghai, Beijing, Chongqing) score high on transport, cleanliness, and heritage — and low on openness. Both are honest. The Great Firewall, surveillance infrastructure, restrictions on assembly, and documented treatment of ethnic minorities are scored on the same basis as Ahmedabad's 2002 legacy or Lucknow's current political climate. The physical city and the political constraints coexist. Neither cancels the other.</p>
+      </div>
+    </div>
+    <div class="method-callout">
+      <strong>What this index doesn't measure (yet):</strong> Governance trajectory (is the city improving or worsening — direction of travel matters as much as current position) · Climate vulnerability (sea level rise risk for Mumbai, Chennai, Shanghai differs qualitatively) · Social mobility (can someone born poor here realistically improve their position) · Food systems access across income levels. These are v6/v7 dimensions. Naming them as known omissions is more honest than pretending the index is complete.
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <span class="ctrl-label">SORT →</span>
+  <button class="sort-btn active" onclick="sortBy('total',this)">Overall</button>
+  <button class="sort-btn" onclick="sortBy('transport',this)">Transport</button>
+  <button class="sort-btn" onclick="sortBy('publicspace',this)">Public Space</button>
+  <button class="sort-btn" onclick="sortBy('cleanliness',this)">Cleanliness</button>
+  <button class="sort-btn" onclick="sortBy('costliving',this)">Cost vs Life</button>
+  <button class="sort-btn" onclick="sortBy('econScale',this)">Econ Scale</button>
+  <button class="sort-btn" onclick="sortBy('econResilience',this)">Econ Resilience</button>
+  <button class="sort-btn" onclick="sortBy('entertainment',this)">Leisure</button>
+  <button class="sort-btn" onclick="sortBy('openness',this)">Openness</button>
+  <button class="sort-btn" onclick="sortBy('heritage',this)">Heritage</button>
+  <button class="sort-btn eco-btn" onclick="sortBy('ecology',this)">🌿 Ecology</button>
+  <button class="sort-btn" onclick="sortBy('gap',this)">Mktg Gap ↑</button>
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="setView('list',this)">LIST</button>
+    <button class="view-btn" onclick="setView('heatmap',this)">HEATMAP</button>
+  </div>
+</div>
+
+<div class="filter-row">
+  <span class="ctrl-label">FILTER →</span>
+  <button class="filter-btn active" onclick="filterBy('all',this)">All 32</button>
+  <button class="filter-btn" onclick="filterBy('southasia',this)">South Asia</button>
+  <button class="filter-btn" onclick="filterBy('eastasia',this)">East Asia</button>
+  <button class="filter-btn" onclick="filterBy('africa',this)">Africa</button>
+  <button class="filter-btn" onclick="filterBy('metro',this)">Metro</button>
+  <button class="filter-btn" onclick="filterBy('tier2',this)">Tier 2</button>
+  <button class="filter-btn" onclick="filterBy('heritage8',this)">Heritage 8+</button>
+  <button class="filter-btn" onclick="filterBy('gaphigh',this)">High Mktg Gap</button>
+  <button class="filter-btn" onclick="filterBy('eco6',this)">🌿 Ecology 6+</button>
+  <button class="filter-btn" onclick="filterBy('open7',this)">Openness 7+</button>
+</div>
+
+<div class="legend-bar">
+  <div class="legend-item"><div class="legend-swatch" style="background:#2a7a4a"></div>7.5+ Strong</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8b6a2a"></div>5.5–7.4 Moderate</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8b2a2a"></div>&lt;5.5 Weak</div>
+  <div class="ldiv"></div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#d4edda;border:1px solid #a8d5b5"></div>Low gap</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fef3cd;border:1px solid #e8d08a"></div>Mid gap</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fde8e8;border:1px solid #e8aaaa"></div>High gap</div>
+  <div class="ldiv"></div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#1a5c3a"></div>🌿 Ecology ½ weight — not a score feeder in standard view; fed at 50% in "Ecology ½wt" sort</div>
+</div>
+
+<main>
+  <div id="list-view"></div>
+  <div id="heatmap-view"><div class="heatmap-wrap"><table class="hm-table" id="hm-table"></table></div></div>
+</main>
+
+<footer>
+  <div>
+    <h4>Scored Dimensions (equal weight)</h4>
+    Transport: network coverage, cost as % min wage, first/last mile, all-class access<br>
+    Public Space: free access, walking distance, shade, class diversity of actual users<br>
+    Cleanliness: visible hygiene, drain function, garbage in non-showcase areas — distinct from Ecology<br>
+    Cost vs Life: PPP-adjusted median rent/wage ratio, public healthcare, food, schooling<br>
+    Economy Scale: size, depth, global connectivity<br>
+    Economy Resilience: sector diversity, shock absorption, informal economy health<br>
+    Leisure: entertainment breadth and access across income levels<br>
+    Openness: women's safety at night, minority experience, caste/race texture, social mixing<br>
+    Heritage: depth, civilisational continuity, living vs museum quality — bias-corrected
+  </div>
+  <div>
+    <h4>🌿 Ecology (half weight)</h4>
+    Sub-indicators: River/water body health (CPCB/equivalent monitoring, not declared quality) · Groundwater trajectory · Green cover 10-year change (satellite-derived) · Air quality annual PM2.5 burden · Government initiative quality (measured by whether indicators are reversing, not by schemes announced)<br><br>
+    <h4>Europe/Americas</h4>
+    NYC, LA, SF, Chicago, Portland, Seattle, DC, Toronto · São Paulo, Rio, Mexico City, Bogotá · Dublin, London, Edinburgh, Amsterdam, Berlin, Paris, Rome — see v5b (separate file, combinable later)
+  </div>
+</footer>
+
+<script>
+const DIMS = ['transport','publicspace','cleanliness','costliving','econScale','econResilience','entertainment','openness','heritage'];
+const DIM_LABELS = ['Transport','Public Space','Cleanliness','Cost vs Life','Econ Scale','Econ Resilience','Leisure','Openness','Heritage'];
+const DIM_SHORT = ['TR','PS','CL','CV','ES','ER','LE','OP','HE'];
+
+function heatBg(s){
+  if(s>=8.5)return'#1a5c38';if(s>=7.5)return'#2a7a4a';if(s>=6.5)return'#4a9a6a';
+  if(s>=5.5)return'#8b6a2a';if(s>=4.5)return'#b8882a';if(s>=3.5)return'#8b2a2a';return'#6a1a1a';
+}
+function ecoBg(s){
+  if(s>=7)return'#1a5c38';if(s>=6)return'#2a7a4a';if(s>=5)return'#5a8a3a';if(s>=4)return'#8a6a1a';return'#8a2a1a';
+}
+function sc(s){return s>=7.5?'good':s>=5.5?'mid':'poor';}
+function scoreColor(s){return s>=7.5?'var(--good)':s>=5.5?'var(--mid)':'var(--poor)';}
+function gapClass(g){return['','gap-low','gap-mid','gap-high'][g];}
+function gapLabel(g){return['','LOW GAP','MED GAP','HIGH GAP'][g];}
+function computeTotal(c){
+  const econ=(c.scores.econScale+c.scores.econResilience)/2;
+  const dims=[c.scores.transport,c.scores.publicspace,c.scores.cleanliness,
+    c.scores.costliving,econ,c.scores.entertainment,c.scores.openness,c.scores.heritage];
+  const base=dims.reduce((a,b)=>a+b,0)/dims.length;
+  // ecology at half weight: blended into total at 50% of one dimension's weight
+  // total = (8 * base + 0.5 * ecology) / 8.5
+  return Math.round(((8*base)+(0.5*c.ecology))/8.5*10)/10;
+}
+
+const REGION_LABELS = {southasia:'South Asia',eastasia:'East Asia',africa:'Africa'};
+
+const cities = [
+// ---- SOUTH ASIA ----
+{name:'Cochin',state:'Kerala',shortState:'KL',region:'southasia',tier:'tier2',
+scores:{transport:7.5,publicspace:7.0,cleanliness:7.0,costliving:7.5,econScale:6.5,econResilience:7.5,entertainment:6.5,openness:8.0,heritage:7.5},
+ecology:6.5,gap:1,
+gapNote:{marketing:'Kerala\'s global city, Water Metro pioneer, cosmopolitan port.',reality:'Mostly accurate. Water Metro genuinely delivers. Eloor toxic belt and eastern suburbs drainage gaps are honest omissions.'},
+econNote:{scale:'Port, Infopark IT, tourism, logistics. Mid-tier but real.',resilience:'Port + IT + tourism + Gulf remittance: genuinely diversified. Gulf dependency is the residual risk.'},
+ecologyNote:'Vembanad lake under stress. Eloor industrial belt contamination documented. Active Ramsar wetland protection and mangrove conservation. Water Metro shows ecological sensitivity in infrastructure. Net: stressed but with genuine governance effort.',
+notes:{transport:'Water Metro world-class. KSRTC buses cover most areas. Autorickshaws with meters enforced better than most Indian cities.',publicspace:'Marine Drive promenade free and genuinely multi-class. Fort Kochi open areas excellent.',cleanliness:'Periyar water quality decent. City drains functional outside monsoon peaks. Vastly better than national average.',costliving:'Median rent to income ratio among India\'s best for a port city. AIIMS Kochi accessible. Public schools functional.',entertainment:'Kochi-Muziris Biennale internationally significant. Fort Kochi arts and cafe scene distinct.',openness:'Women\'s mobility notably better. Visible LGBTQ+ community. Multi-religious coexistence functional. Caste present but less visible.',heritage:'Portuguese, Dutch, British layering over pre-existing spice trade history. Jewish quarter, Syrian Christian basilicas, Chinese fishing nets. Living heritage.'},
+verdict:'The most consistently liveable Indian city at its size. Not glamorous, not booming — but honest, functional, and unusually decent across class lines.'},
+
+{name:'Chennai',state:'Tamil Nadu',shortState:'TN',region:'southasia',tier:'metro',
+scores:{transport:7.5,publicspace:6.0,cleanliness:5.5,costliving:7.0,econScale:7.5,econResilience:8.5,entertainment:7.0,openness:6.0,heritage:8.5},
+ecology:5.0,gap:1,
+gapNote:{marketing:'Gateway to South India, IT corridor, Dravidian cultural capital.',reality:'Accurately represented without overselling. Systematically underranked in central indices. River health is the persistent blind spot.'},
+econNote:{scale:'Auto manufacturing, IT/ITES, port trade, healthcare exports, leather, textiles, defence. Mid-to-large with global reach.',resilience:'Arguably India\'s most sectorally diverse major city economy. Auto + port + IT + healthcare + manufacturing — no single shock removes the base.'},
+ecologyNote:'Cooum and Adyar rivers biologically compromised. Wetland loss significant but post-2015 policy shift produced some real structural work. Groundwater declining, desalination dependent. Some genuine government initiative on stormwater drains. Net trajectory still negative.',
+notes:{transport:'MRTS + Metro + Suburban Rail — India\'s most comprehensive rail network outside Mumbai. MTC buses wide coverage. Autorickshaws largely unmetered — persistent governance failure.',publicspace:'Marina Beach: genuine world-class free public space, 13km, all classes, all hours. Elliot\'s Beach better maintained.',cleanliness:'Cooum and Adyar compromised. Inner city drains in non-showcase areas poor. Post-2015 structural improvements real but river crisis remains.',costliving:'Reasonable and stable. Government hospital network genuinely accessible. Food culture at exceptional value.',entertainment:'Carnatic classical tradition globally significant. Tamil cinema as serious art. Margazhi season world-class.',openness:'Conservative by southern metro standards. Women\'s mobility better than Delhi/Mumbai but harassment present.',heritage:'Mylapore: one of South Asia\'s oldest continuously inhabited settlements. San Thome Basilica over St. Thomas tomb. Fort St. George oldest surviving British colonial fort in India. Dravidian tradition spread to Southeast Asia.'},
+verdict:'The most consistently underranked major Indian city. Resilient economy, best rail network in the south, deepest food culture, and heritage more ancient than most Indians are taught to recognise.'},
+
+{name:'Mysore',state:'Karnataka',shortState:'KA',region:'southasia',tier:'tier2',
+scores:{transport:5.0,publicspace:7.5,cleanliness:7.5,costliving:8.0,econScale:5.0,econResilience:6.0,entertainment:6.0,openness:6.0,heritage:7.5},
+ecology:7.5,gap:1,
+gapNote:{marketing:'Heritage city. Clean city. Quality of life destination.',reality:'Largely accurate. Cleanliness and heritage real. Economic limitation real and undermentioned.'},
+econNote:{scale:'BEML, JSW, Infosys campus, silk, tourism. Small base.',resilience:'Manufacturing + government + tourism: reasonable spread for city size.'},
+ecologyNote:'One of India\'s better ecological performers. Low industrial stress. Kabini environs relatively healthy. Green cover maintained. Chamundi Hill green belt protected. No major ecological crisis.',
+notes:{transport:'Bus network functional for city size. No metro. Core areas walkable.',publicspace:'Chamundi Hill, KRS Backwaters, Brindavan Gardens — exceptional public space per capita.',cleanliness:'One of India\'s genuinely cleaner large cities. Low industrial pollution. Swachh rankings credible here.',costliving:'Outstanding ratio. Nurse\'s salary buys decent 2BHK near city centre. Food world-class at street prices.',entertainment:'Dasara: one of India\'s genuinely great festivals. Nightlife essentially absent.',openness:'Educated, relatively tolerant. Conservative Kannada identity present but not aggressive.',heritage:'Mysore Palace: one of India\'s finest functioning royal spaces. Wodeyar court culture — Carnatic music, Sanskrit literature, administration. Hoysala temples within reach.'},
+verdict:'India\'s most honest city in the ranking sense. The heritage-to-cost ratio is unmatched anywhere in India.'},
+
+{name:'Madurai',state:'Tamil Nadu',shortState:'TN',region:'southasia',tier:'tier2',
+scores:{transport:5.5,publicspace:6.0,cleanliness:5.0,costliving:8.0,econScale:5.0,econResilience:6.5,entertainment:6.0,openness:5.5,heritage:9.0},
+ecology:4.5,gap:1,
+gapNote:{marketing:'Temple city. Thoonga nagaram. Cultural capital of Tamil Nadu.',reality:'The temple narrative is earned. The city outside the temple complex receives less investment than the heritage core.'},
+econNote:{scale:'Textiles, jasmine trade, religious tourism, handloom. Small base relative to cultural significance.',resilience:'Religious tourism remarkably resilient — Meenakshi Amman draws pilgrims regardless of macro cycles. Ancient informal economy robust.'},
+ecologyNote:'Vaigai river severely stressed — near-zero flow in summer, heavy sewage load. Groundwater declining. Urban heat island intense. Temple tank maintained but most water bodies neglected.',
+notes:{transport:'No metro. Town buses functional. Railway junction important for regional connectivity.',publicspace:'Temple complex is extraordinary free public space — functional, multi-class, 24 hours.',cleanliness:'Vaigai river poor health. Street cleanliness inconsistent outside core temple areas.',costliving:'Excellent. Among India\'s best rent-to-income ratios. Food culture world-class value.',entertainment:'Meenakshi Amman is itself a cultural universe — festivals, rituals, music, architecture experienced daily.',openness:'Conservative social culture. Caste dynamics more visible than in Chennai. Proud Dalit political tradition.',heritage:'One of the oldest continuously inhabited cities in the world. Meenakshi Amman: among the greatest architectural achievements in human history. 14 gopurams, 33,000 sculptures. Sangam literature tradition originated here.'},
+verdict:'Madurai carries more civilisational weight per square kilometre than almost any city in India. The contrast between extraordinary heritage and underinvested infrastructure is the defining tension of modern Madurai.'},
+
+{name:'Trichy',state:'Tamil Nadu',shortState:'TN',region:'southasia',tier:'tier2',
+scores:{transport:5.5,publicspace:5.5,cleanliness:6.0,costliving:8.0,econScale:5.5,econResilience:6.5,entertainment:5.0,openness:6.0,heritage:8.5},
+ecology:6.0,gap:1,
+gapNote:{marketing:'Heritage city. BHEL town. Administrative centre of central Tamil Nadu.',reality:'Accurate and understated. Trichy doesn\'t oversell itself.'},
+econNote:{scale:'BHEL (one of India\'s largest PSUs), defence manufacturing, textiles, agriculture. Mid-scale.',resilience:'PSU manufacturing + defence + agriculture + religious tourism. Diversified and less exposed to private sector cycles.'},
+ecologyNote:'Kaveri river in better health than most Indian urban rivers. Groundwater relatively stable in Kaveri delta. Green cover moderate. BHEL and TANGEDCO plants a localised concern.',
+notes:{transport:'One of Tamil Nadu\'s most important rail nodes. Town buses functional. Compact and walkable in core areas.',publicspace:'Rock Fort area and Kaveri ghats genuine public space. Srirangam island environment.',cleanliness:'Above Tamil Nadu average. No major river health crisis of Chennai\'s scale.',costliving:'Excellent. Among Tamil Nadu\'s best value cities. Food culture excellent value.',entertainment:'Srirangam annual Vaikunta Ekadasi draws massive crowds to extraordinary architectural setting.',openness:'Conservative central Tamil Nadu culture. Better than North India, not exceptional by southern standards.',heritage:'Rockfort carved into a 3.8 billion year old rock. Srirangam: world\'s largest functioning Hindu temple complex by area. Density of extraordinary heritage in a 30km radius matched by almost nowhere in India.'},
+verdict:'Systematically overlooked. Trichy manages itself with quiet competence, sits at the centre of one of India\'s richest heritage corridors, and offers one of the best cost-to-quality ratios in the country.'},
+
+{name:'Hyderabad',state:'Telangana',shortState:'TS',region:'southasia',tier:'metro',
+scores:{transport:6.5,publicspace:5.5,cleanliness:5.5,costliving:6.5,econScale:8.5,econResilience:7.5,entertainment:7.0,openness:6.5,heritage:8.0},
+ecology:5.0,gap:2,
+gapNote:{marketing:'"City of Pearls." Cyberabad. Biryani capital. Nizami syncretic culture.',reality:'Economic and heritage claims largely accurate. HITECH City pedestrian hostility and Musi river health are consistent blind spots.'},
+econNote:{scale:'Second largest IT cluster, global pharma hub, aerospace (DRDO, BDL, HAL), life sciences.',resilience:'IT + pharma + aerospace + manufacturing: unusually well-diversified for a tier-1 tech city. Pharma exports genuinely countercyclical.'},
+ecologyNote:'Musi river documented failure. Lake encroachment ongoing despite court orders. Urban heat island severe in HITECH City belt. Some genuine lake restoration activity but net trend still negative.',
+notes:{transport:'Metro excellent. TSRTC buses wide network. HITECH City designed entirely for cars — severe last-mile failure.',publicspace:'KBR National Park genuine urban lung. Hussain Sagar improved. Banjara Hills has almost no walkable public space.',cleanliness:'Better feel than Delhi/Mumbai. Musi river serious environmental failure.',costliving:'Best value of major tech metros. Rent-to-income ratio notably better than Bengaluru.',entertainment:'Biryani culture genuine lifestyle infrastructure. Old city bazaars, Ramzan street culture extraordinary.',openness:'Hindu-Muslim syncretic culture visible and largely real. Patriarchal undercurrents in both communities.',heritage:'Charminar, Golconda Fort, Qutb Shahi Tombs, Chowmahalla Palace, Salar Jung Museum. Nizami culture: Deccani miniature painting, Urdu literature, classical music. Living culture.'},
+verdict:'Most improved major Indian city of the last decade. Bengaluru-scale economic dynamism with functioning infrastructure, pharma/aerospace resilience, and world-class heritage.'},
+
+{name:'Trivandrum',state:'Kerala',shortState:'KL',region:'southasia',tier:'tier2',
+scores:{transport:6.0,publicspace:6.5,cleanliness:7.0,costliving:8.0,econScale:5.5,econResilience:6.5,entertainment:6.0,openness:7.5,heritage:7.0},
+ecology:7.0,gap:1,
+gapNote:{marketing:'Kerala\'s capital, education hub, emerging tech city.',reality:'Accurate and measured. Technopark is real. Not oversold.'},
+econNote:{scale:'Technopark/Technocity IT, government, healthcare, tourism. Small but genuine.',resilience:'Government + IT + tourism + remittance: reasonable cushioning.'},
+ecologyNote:'Relatively low ecological stress for city size. Coastal erosion real concern. Groundwater relatively stable. Karamana river modest but functional. Mangrove protection better than average.',
+notes:{transport:'City buses functional. No metro yet. KSRTC inter-city excellent. Core belt walkable.',publicspace:'Kanakakunnu Palace grounds, Shanghumugham Beach, Veli, Napier Museum gardens. Free access.',cleanliness:'Kerala standard — notably better than national average.',costliving:'Excellent. SAT Hospital, AIIMS accessible. Rent-to-income ratio among India\'s best.',entertainment:'Padmanabhaswamy temple culture rich. Kerala cuisine. Very limited nightlife.',openness:'Progressive Kerala values functional. Women\'s safety noticeably better. Daily texture more relaxed than most Indian cities.',heritage:'Padmanabhaswamy Temple — one of India\'s most spectacular royal temples. Travancore court tradition in music underappreciated.'},
+verdict:'Safe, clean, educated, affordable. Underappreciated precisely because it doesn\'t overstate its case.'},
+
+{name:'Mangalore',state:'Karnataka',shortState:'KA',region:'southasia',tier:'tier2',
+scores:{transport:5.5,publicspace:6.0,cleanliness:6.5,costliving:7.5,econScale:5.5,econResilience:6.5,entertainment:5.5,openness:4.5,heritage:6.5},
+ecology:7.0,gap:1,
+gapNote:{marketing:'Port city. Gateway to coastal Karnataka. Tulu culture. Food destination.',reality:'Accurate without overselling. Communal incidents and moral policing history conspicuously absent from tourist narratives.'},
+econNote:{scale:'Port, banking origins (Canara Bank, Syndicate Bank), petrochemicals, cashew processing, fishing. Mid-scale.',resilience:'Port + financial services + agriculture processing. Reasonable resilience.'},
+ecologyNote:'Western Ghats proximity, Netravathi river in reasonable health. Mangrove cover partially maintained. New Mangalore Port emissions localised. Rapid hillside construction a growing stress. Net: better than most Indian coastal cities.',
+notes:{transport:'KSRTC buses functional. No metro. Rail connectivity decent. Moderately walkable in city core.',publicspace:'Panambur and Tannirbhavi beaches accessible. Kadri Hill Park decent. Coastal access good.',cleanliness:'Above Karnataka average. Netravathi river decent health. Better baseline than inland cities.',costliving:'Good value. Mangalorean cuisine at excellent prices. Housing affordable.',entertainment:'Food culture world-class — Mangalorean cuisine arguably among India\'s finest. Coastal proximity.',openness:'Significant concern. Documented moral policing incidents — attacks on mixed-gender gatherings, pub attacks. Sri Ram Sene operations visible. Women\'s public mobility has faced organised intimidation.',heritage:'Kadri Manjunath Temple ancient. St. Aloysius Chapel extraordinary ceiling murals. Tulu cultural tradition — Yakshagana, Bhuta Kola — distinct and underrepresented nationally.'},
+verdict:'A genuinely beautiful coastal city with world-class food and relatively healthy ecology — undermined by documented organised moral policing and communal intimidation.'},
+
+{name:'Pune',state:'Maharashtra',shortState:'MH',region:'southasia',tier:'metro',
+scores:{transport:5.0,publicspace:5.5,cleanliness:5.0,costliving:5.5,econScale:7.5,econResilience:7.5,entertainment:7.5,openness:7.5,heritage:6.5},
+ecology:5.0,gap:2,
+gapNote:{marketing:'"Oxford of the East." Progressive. Green. Quality of life.',reality:'The Oxford tag is 40 years old. Traffic, rising costs, and green space decline tell a different story for new residents.'},
+econNote:{scale:'Auto manufacturing, IT/ITES, defence PSUs, pharma, BFSI, engineering. Significant.',resilience:'Manufacturing + IT + defence: genuinely resilient. EV transition risk for auto real.'},
+ecologyNote:'Mula-Mutha river poor health. Rapid green cover loss as city expands into Western Ghats foothills. Groundwater declining. Similar trajectory to early-2000s Bengaluru.',
+notes:{transport:'Metro expanding but years behind schedule. PMPML buses crowded. Traffic catastrophic in Kothrud-Wakad-Hinjewadi belt.',publicspace:'Parvati Hill, Empress Garden decent. City expanding into green zones faster than it protects them.',cleanliness:'Cantonment areas clean. Periphery significantly worse. Mula-Mutha poor.',costliving:'Rising sharply. 2BHK in Baner ₹35,000+. Corporate campus effect inflating median.',entertainment:'Strongest live music and comedy scene outside Mumbai-Bengaluru. Student city energy.',openness:'Large student and expat population creates genuine cosmopolitanism. Strong Phule-Ambedkar civil society tradition.',heritage:'Shaniwar Wada, Aga Khan Palace, Sinhagad Fort. Phule-Ambedkar social reform tradition as living intellectual heritage.'},
+verdict:'What Bengaluru was in 2005. The infrastructure warning signs are identical. The window to act is open but narrowing.'},
+
+{name:'Coimbatore',state:'Tamil Nadu',shortState:'TN',region:'southasia',tier:'tier2',
+scores:{transport:5.0,publicspace:5.5,cleanliness:6.5,costliving:8.0,econScale:6.5,econResilience:8.5,entertainment:5.5,openness:5.5,heritage:5.0},
+ecology:5.5,gap:1,
+gapNote:{marketing:'"Manchester of South India." Industrial powerhouse.',reality:'Industrial tag earned and honest. Not an oversold city.'},
+econNote:{scale:'Textile machinery, pumps, motors — globally competitive niches. Growing IT.',resilience:'Perhaps India\'s most recession-proof city economy. Essential manufacturing regardless of macro cycle.'},
+ecologyNote:'Noyyal river poor health from textile effluents. Groundwater declining in industrial belt. Nilgiris proximity is an ecological asset for the wider region.',
+notes:{transport:'No metro. Town buses functional. Largely two-wheeler/auto city.',publicspace:'VOC Park, Ukkadam Lakes. Functional rather than exceptional.',cleanliness:'Consistently above Tamil Nadu average in residential areas. Noyyal river a significant failure.',costliving:'Among best rent-to-income ratios in India for this level of economic activity.',entertainment:'Adiyogi at Isha draws global visitors. Nilgiris proximity. Limited urban arts scene.',openness:'Conservative Kongu community norms. Hindutva presence more visible than many Tamil cities.',heritage:'Marudamalai, Perur Pateeswarar of note. Not a heritage destination.'},
+verdict:'India\'s most economically resilient mid-sized city. Deeply unglamorous and honest about it.'},
+
+{name:'Vizag',state:'Andhra Pradesh',shortState:'AP',region:'southasia',tier:'tier2',
+scores:{transport:5.5,publicspace:6.5,cleanliness:6.0,costliving:7.0,econScale:6.0,econResilience:7.0,entertainment:5.5,openness:6.5,heritage:5.5},
+ecology:6.5,gap:1,
+gapNote:{marketing:'"City of Destiny." Natural beauty. Rising IT destination.',reality:'Natural beauty claim accurate. Capital status ambitions created political chaos more than investment benefit.'},
+econNote:{scale:'Port, RINL/Vizag Steel, naval base, growing IT, pharma in Parawada SEZ. Real but mid-scale.',resilience:'Port + steel + defence + IT + pharma: genuinely diversified. Naval presence provides strategic stability.'},
+ecologyNote:'Natural geography is an asset — Eastern Ghats meeting Bay of Bengal. Rushikonda Beach relatively healthy. Steel plant emissions localised. Gosthani river cleaner than typical Indian urban rivers. Better ecological baseline than its industrial status suggests.',
+notes:{transport:'APSRTC buses cover city. No metro yet though planned. Rail connectivity good. RTC Complex area walkable.',publicspace:'RK Beach one of India\'s better urban beaches — long, maintained, free. Kailasagiri hilltop park. Natural geography compensates.',cleanliness:'Above Andhra Pradesh average. Industrial zones separated. Better than reputation suggests.',costliving:'Good value. Rising with IT expansion but still affordable.',entertainment:'RK Beach culture. Natural surroundings (Araku Valley) compensate for limited urban arts scene.',openness:'Relatively relaxed Telugu coastal culture. Women\'s public mobility reasonable. Less communal tension history.',heritage:'Buddhist heritage significant — Thotlakonda, Bavikonda monasteries. Simhachalam Temple ancient.'},
+verdict:'An honest mid-tier city with better ecological assets and economic diversification than its profile suggests. Worth more attention than it receives.'},
+
+{name:'Kolkata',state:'West Bengal',shortState:'WB',region:'southasia',tier:'metro',
+scores:{transport:7.0,publicspace:7.0,cleanliness:4.0,costliving:8.0,econScale:4.5,econResilience:4.5,entertainment:7.5,openness:6.5,heritage:9.0},
+ecology:5.5,gap:2,
+gapNote:{marketing:'"Cultural capital of India." City of Joy. Intellectual hub.',reality:'Cultural claim largely earned. Economic stagnation and political capture are systematically absent from the narrative.'},
+econNote:{scale:'Port in relative decline, industrial base hollowed, some IT. Small.',resilience:'Poorly diversified and structurally declining. Political instability deters investment.'},
+ecologyNote:'East Kolkata Wetlands: UNESCO Ramsar site, world\'s largest sewage-fed aquaculture system — a genuine ecological achievement. Hooghly river better than Yamuna, tidal flushing helps. Urban sprawl consuming wetland edges.',
+notes:{transport:'India\'s first metro. Trams: dying but historically significant. Suburban rail extensive. Hooghly ferries real transport mode. Traffic managed better than Bengaluru despite higher density.',publicspace:'Maidan: hundreds of acres of genuinely open, free, multi-class public land in a megacity. Victoria Memorial gardens. Extraordinary by any global standard.',cleanliness:'Hooghly receives untreated sewage. Street cleanliness in Howrah, North Kolkata poor.',costliving:'Outstanding. Street food price-to-quality ratio world-class. Government healthcare accessible though strained.',entertainment:'Durga Puja: UNESCO-recognised, genuinely world-scale. Bengali intellectual culture — literature, art cinema, Rabindra Sangeet, coffee house adda.',openness:'Left-intellectual tradition creates real cross-class tolerance. Gender safety mixed.',heritage:'Victoria Memorial, Writers\' Building, Howrah Bridge. Tagore\'s Jorasanko. Colonial layering matched by Bengali literary and artistic heritage of global significance.'},
+verdict:'Once one of the world\'s great metropolises — still extraordinary. Economically adrift and politically captured. What happens when great cities are let down by politics over generations.'},
+
+{name:'Chandigarh',state:'Punjab/Haryana',shortState:'UT',region:'southasia',tier:'tier2',
+scores:{transport:5.5,publicspace:9.0,cleanliness:7.5,costliving:6.5,econScale:4.5,econResilience:5.5,entertainment:5.5,openness:6.0,heritage:5.5},
+ecology:7.5,gap:2,
+gapNote:{marketing:'Best planned city in India. Cleanest. Highest per capita income.',reality:'Planning is 70 years old. Public space and cleanliness genuine. Per capita income elevated by government salaries.'},
+econNote:{scale:'Government, trade, proximity economy. No significant industrial or tech base.',resilience:'Government employment provides stability floor but base is narrow.'},
+ecologyNote:'Green cover maintained by law. Sector parks genuinely maintained. Air quality affected by Punjab stubble burning seasonally — a regional problem not local governance failure. Groundwater relatively stable.',
+notes:{transport:'CTU buses poor frequency. No metro. Grid should enable cycling — infrastructure was never built. Very car-dependent.',publicspace:'Unmatched in India. Rose Garden, Sukhna Lake, Rock Garden (Nek Chand: internationally recognised outsider art), sector parks everywhere.',cleanliness:'Genuine. Wide roads, functional drains, civic pride visible.',costliving:'Good but government-salary inflated. NRI real estate demand pricing out local working population.',entertainment:'Rock Garden world-class. Proximity to Shimla, Kasauli, Dharamshala.',openness:'Better than Punjab/Haryana rural norms. Carries social conservatism of both states.',heritage:'Le Corbusier\'s Capitol Complex: UNESCO-recognised modernist heritage. A different kind — singular, planned, 70 years old.'},
+verdict:'Best planned city in India with the public space to prove it — but a government town with thin economic legs.'},
+
+{name:'Amritsar',state:'Punjab',shortState:'PB',region:'southasia',tier:'tier2',
+scores:{transport:5.0,publicspace:7.5,cleanliness:6.0,costliving:7.0,econScale:5.0,econResilience:5.5,entertainment:6.0,openness:6.0,heritage:9.5},
+ecology:4.5,gap:2,
+gapNote:{marketing:'Golden Temple city. Spiritual capital of Sikhism.',reality:'Heritage zone accurately described and genuinely extraordinary. City outside that zone receives far less investment.'},
+econNote:{scale:'Religious tourism, agro-processing, textiles, trade. Moderate scale heavily anchored to heritage draw.',resilience:'Religious tourism remarkably recession-resistant — Golden Temple draws 100,000+ visitors daily regardless of macro conditions.'},
+ecologyNote:'Punjab\'s agricultural groundwater crisis extends directly into Amritsar district — water table falling at documented rates. Air quality affected by stubble burning seasonally.',
+notes:{transport:'No metro. City buses limited. E-rickshaws in heritage zone. Walkable within heritage core.',publicspace:'Golden Temple complex: one of the world\'s great public spaces — free, open 24 hours, 100,000+ people daily of all backgrounds, free langar.',cleanliness:'Heritage zone immaculate — SGPC management exceptional. City outside inconsistent.',costliving:'Good value. Punjabi food culture at remarkable prices.',entertainment:'Golden Temple as daily cultural experience is without parallel. Wagah ceremony. Punjabi music, dhaba culture.',openness:'Conservative Punjabi culture. Religious pluralism in Golden Temple tradition genuine. Women\'s mobility moderate.',heritage:'The Golden Temple (Harmandir Sahib): architecturally and spiritually one of humanity\'s great buildings. Jallianwala Bagh. Partition Museum world-class. Sikh heritage tradition radiates globally from this city.'},
+verdict:'A city almost entirely defined by one of humanity\'s greatest religious and architectural achievements. The city outside the heritage zone is pleasant but unremarkable — and that gap is itself an honest assessment of where civic investment has and hasn\'t gone.'},
+
+{name:'Lucknow',state:'Uttar Pradesh',shortState:'UP',region:'southasia',tier:'tier2',
+scores:{transport:6.0,publicspace:5.5,cleanliness:5.0,costliving:6.5,econScale:6.0,econResilience:5.5,entertainment:6.0,openness:3.5,heritage:8.0},
+ecology:4.0,gap:3,
+gapNote:{marketing:'City of Nawabs. Tehzeeb. Naya Lucknow — smart city, development showcase.',reality:'Severe gap specifically on openness. The Nawabi cultural narrative papers over present-day reality for minority communities.'},
+econNote:{scale:'Government (state capital), IT/ITeS growing, construction boom, MSME cluster, defence. Growing base.',resilience:'Government + MSME + growing IT: reasonable diversification but heavily dependent on state government policy continuity.'},
+ecologyNote:'Gomti river in serious condition — one of India\'s more polluted rivers. Indo-Gangetic plain groundwater declining. Urban heat island intensifying. River cleanup initiatives exist but trajectory remains negative.',
+notes:{transport:'Lucknow Metro: operational, clean, limited network but expanding. Better than its North Indian peer group.',publicspace:'Hazratganj promenade, Janeshwar Mishra Park large and maintained. Ambedkar Memorial Park extraordinary in scale.',cleanliness:'Better than North Indian average on visual street cleanliness. Gomti river health a serious failure.',costliving:'Good value. KGMU: one of North India\'s major medical institutions. Awadhi food culture world-class at street prices.',entertainment:'Awadhi cuisine — birthplace of dum cooking, one of world\'s great culinary traditions. Chikankari, zardozi craft culture.',openness:'The honest score and it matters enormously. Lucknow is the capital of Uttar Pradesh under an administration with documented targeting of Muslim communities — bulldozer demolitions, CAA protests response, communal violence episodes. The tehzeeb is a cultural inheritance created by Muslim courtly culture. The irony of celebrating Nawabi heritage while the current political dispensation targets the community that created it is the defining tension of contemporary Lucknow.',heritage:'Bara Imambara and Chota Imambara: architecturally extraordinary. The Nawabi court culture produced a distinctive synthesis in music, cuisine, language (the most refined Hindustani/Urdu), architecture, and manners.'},
+verdict:'The most internally contradictory city in this index. Extraordinary Nawabi heritage created by Muslim courtly culture sitting inside a political environment that systematically targets that same community. Both things are true.'},
+
+{name:'Jaipur',state:'Rajasthan',shortState:'RJ',region:'southasia',tier:'metro',
+scores:{transport:6.0,publicspace:5.5,cleanliness:5.5,costliving:6.5,econScale:6.5,econResilience:6.0,entertainment:6.5,openness:5.5,heritage:8.5},
+ecology:3.5,gap:3,
+gapNote:{marketing:'"Pink City." Royal Rajasthan. Heritage tourism capital.',reality:'Heritage zone accurately presented. The water crisis is systematically absent from city promotion.'},
+econNote:{scale:'Gemstones, handicrafts, textiles, tourism, growing IT.',resilience:'Handicraft + gemstone + tourism: heritage-dependent with some resilience.'},
+ecologyNote:'Desert ecology severely stressed. Groundwater critical — Jaipur sits on a declining aquifer, among India\'s most water-stressed major cities. No significant river. Urban heat island extreme. The development model is running against the natural geography.',
+notes:{transport:'Jaipur Metro: operational, limited network. JCTSL buses functional. Reasonably functional for North Indian city.',publicspace:'Jawahar Circle garden. Old city bazaars as public space. Nahargarh hilltop accessible.',cleanliness:'Walled city maintained for tourism. Outside tourist zones inconsistent.',costliving:'Reasonable. Cheaper than Delhi-Mumbai. SMS Hospital accessible.',entertainment:'Old city bazaars as cultural experience. Artisan craft traditions. Lit Fest.',openness:'Conservative Rajasthani social culture. Caste dynamics visible in artisan community structures.',heritage:'Amber Fort, City Palace, Jantar Mantar (UNESCO), Hawa Mahal — extraordinary density of Rajput architectural heritage. Walled city UNESCO-listed. Artisan traditions — blue pottery, block printing, gemstone cutting, miniature painting — living heritage of global significance.'},
+verdict:'Extraordinary heritage sitting on a water crisis that is structural and existential. The gap between the Pink City brand and the lived experience of most residents is one of the largest in this index.'},
+
+{name:'Surat',state:'Gujarat',shortState:'GJ',region:'southasia',tier:'metro',
+scores:{transport:6.0,publicspace:6.0,cleanliness:7.0,costliving:6.5,econScale:7.5,econResilience:7.0,entertainment:4.5,openness:5.0,heritage:4.5},
+ecology:5.5,gap:2,
+gapNote:{marketing:'Diamond capital of the world. Fastest growing city. Clean city.',reality:'Diamond capital and growth claims accurate. 2006 flood response was real governance. Dry state entertainment limitation absent from promotion.'},
+econNote:{scale:'Diamond polishing (90% of world\'s diamonds cut here), textile manufacturing, chemicals, petrochemicals.',resilience:'Diamond trade concentration risk from lab-grown disruption. Textile + chemicals + petrochemicals provide real diversification.'},
+ecologyNote:'The 2006 flood response is the key data point — Surat actually fixed its drainage, one of the very few Indian cities to learn and act. Tapi river health moderate. Industrial effluents documented. Net: genuinely better managed than expected.',
+notes:{transport:'BRTS functional — one of Gujarat\'s better city bus systems.',publicspace:'Dumas Beach. Sarthana Nature Park. Riverfront development along Tapi improving.',cleanliness:'Genuine relative strength — 2006 flood aftermath produced real institutional improvement in solid waste management.',costliving:'Reasonable. Surti snack tradition extraordinary. Housing accessible.',entertainment:'Surti food culture extraordinary — one of India\'s underrated culinary cities. Dry state eliminates pub and bar culture.',openness:'Economically cosmopolitan — massive migrant workforce coexists functionally. But social conservatism of dry state Gujarat persists.',heritage:'Surat was Mughal India\'s most important port — the city the British East India Company first established in India. Dutch, English, Portuguese, Armenian trading posts. History underexplored and underpreserved.'},
+verdict:'India\'s most interesting economic city after Mumbai. The 2006 flood response — actually fixing the drainage — is almost unique in Indian urban governance.'},
+
+{name:'Bangalore',state:'Karnataka',shortState:'KA',region:'southasia',tier:'metro',
+scores:{transport:5.0,publicspace:4.5,cleanliness:4.0,costliving:4.5,econScale:9.5,econResilience:6.5,entertainment:8.5,openness:8.5,heritage:5.5},
+ecology:3.5,gap:3,
+gapNote:{marketing:'"Silicon Valley of India." Start-up capital. Garden city. Global city.',reality:'Severe and widening gap. Garden city is memory. Lakes catch fire. Infrastructure a tier-3 European city would refuse.'},
+econNote:{scale:'India\'s largest tech economy by margin. Deep MNC presence, aerospace, biotech, manufacturing hinterland.',resilience:'Deeply correlated — IT services, product, startups contract together in global tech slowdown.'},
+ecologyNote:'Among India\'s worst urban ecological trajectories. Bellandur and Varthur lakes produce toxic foam that catches fire. Tree cover halved since 1990. Lakes: 262 in 1960 to under 90 functional today. Groundwater critical. Net trajectory strongly negative despite insufficient restoration efforts.',
+notes:{transport:'Metro excellent but covers ~20% of commute needs. Roads: governance failure, pothole deaths annually.',publicspace:'Lalbagh and Cubbon Park world-class — islands in a concrete sea. Lakes encroached or sewage sumps.',cleanliness:'Deeply poor outside showcase areas. Bellandur-Varthur lake fires documented internationally.',costliving:'Rapidly unjustifiable. 2BHK in Whitefield ₹45,000–60,000/month for tier-2 city infrastructure.',entertainment:'Outstanding and earned. Craft beer culture, live music, stand-up, food diversity. Genuinely world-class for India.',openness:'India\'s most genuinely cosmopolitan city — earned. LGBTQ+ most visible. Pub culture normalised. Cross-regional mixing real.',heritage:'Tipu Sultan\'s Fort, Vidhana Soudha, Bangalore Palace. Actively erases heritage faster than it documents it.'},
+verdict:'Extraordinary for tech workers in curated enclaves. Infrastructure catastrophe for everyone else. A city consuming its own foundations while the marketing describes the city it used to be.'},
+
+{name:'New Delhi',state:'Delhi NCT',shortState:'DL',region:'southasia',tier:'metro',
+scores:{transport:7.5,publicspace:5.0,cleanliness:3.0,costliving:4.5,econScale:7.5,econResilience:6.5,entertainment:8.0,openness:4.5,heritage:9.0},
+ecology:2.5,gap:3,
+gapNote:{marketing:'World-class metro. India\'s capital. Smart city. Heritage destination.',reality:'Metro genuinely excellent. AQI a public health emergency. Yamuna dead. Official rankings consistently disguise what is an environmental catastrophe.'},
+econNote:{scale:'Trade, media, government, wholesale markets, NCR manufacturing, BFSI. Massive through NCR extension.',resilience:'Reasonably diversified across NCR. Government employment provides stability floor.'},
+ecologyNote:'India\'s worst ecological performer. Annual PM2.5 emergency documented at 10–15× WHO limits — epidemiological studies show measurable life-years lost. Yamuna biologically dead in Delhi stretch. Groundwater critical. Real initiatives (CNG, BS-VI) but trajectory remains deeply negative.',
+notes:{transport:'Delhi Metro: India\'s finest — clean, punctual, air-conditioned, extensive, affordable.',publicspace:'Lodi Garden, Deer Park, India Gate lawns excellent and multi-class. Outer Delhi has minimal green space.',cleanliness:'Annual AQI emergency 10–15× WHO limits in winter. Yamuna clinically dead. A public health catastrophe.',costliving:'South Delhi and Gurugram deeply expensive. Pollution-related healthcare costs are real but invisible in official indices.',entertainment:'Hauz Khas, CP, Khan Market, Dilli Haat, international artists, comedy, club culture, cuisine diversity.',openness:'Cosmopolitan surface. Gender safety: India\'s worst documented record. Caste and religious tensions sharp.',heritage:'Unparalleled. Seven historical cities. Qutb Minar, Humayun\'s Tomb, Red Fort, Lodhi monuments, Mehrauli Archaeological Park.'},
+verdict:'Extraordinary heritage and economic weight inside an environmental emergency. The AQI kills measurable life-years. A city where the powerful live well in filtered air and the majority absorb the cost.'},
+
+{name:'Bombay',state:'Maharashtra',shortState:'MH',region:'southasia',tier:'metro',
+scores:{transport:7.5,publicspace:4.0,cleanliness:4.0,costliving:2.5,econScale:9.5,econResilience:8.5,entertainment:9.0,openness:8.0,heritage:7.5},
+ecology:4.5,gap:2,
+gapNote:{marketing:'"Maximum city." Financial capital. City of dreams. Most cosmopolitan.',reality:'Economic and cosmopolitan claims accurate. "City of dreams" is class-specific. Median Mumbai resident conditions not captured in promotional narrative.'},
+econNote:{scale:'BSE, SEBI, all major Indian bank HQs, insurance, Bollywood, port, fashion, media. India\'s financial capital.',resilience:'Most diversified of any Indian city. Finance, entertainment, port, media, manufacturing (MMR), pharma. Most resilient large city economy in India.'},
+ecologyNote:'Mithi river: documented cause of 2005 flood deaths, chronic sewage input. Mangrove loss ongoing despite court protection orders. Coastal erosion accelerating. Development pressure consistently wins over conservation.',
+notes:{transport:'Local train network: India\'s greatest public transport achievement — extraordinary capacity, democratic, affordable. Crush load deaths are a recorded statistic.',publicspace:'Marine Drive, Bandra Bandstand, Juhu Beach genuinely public across class lines. Lowest park area per capita of any global megacity.',cleanliness:'Dharavi, Kurla, Govandi: massive documented hygiene crises. Mithi river ecological disaster.',costliving:'India\'s worst by significant margin. 2BHK in Andheri ₹65,000–85,000/month. Nurse, teacher, police officer cannot live within 30km of their workplace.',entertainment:'The benchmark. Bollywood, NCPA, Prithvi Theatre, international acts, food from every Indian state. No Indian city competes.',openness:'Most cosmopolitan. All of India coexists. 1992-93 riots shaped residential geography — daily coexistence mostly functional.',heritage:'CST (UNESCO), Marine Drive art deco ensemble (world\'s second largest after Miami), Gateway, Kala Ghoda, Bandra churches.'},
+verdict:'More of everything except space, cleanliness, and affordability. Premium rent for opportunities that are genuinely real — unjustifiable for anyone outside the top two income deciles.'},
+
+{name:'Guwahati',state:'Assam',shortState:'AS',region:'southasia',tier:'tier2',
+scores:{transport:4.5,publicspace:5.0,cleanliness:4.5,costliving:7.0,econScale:5.0,econResilience:5.5,entertainment:4.5,openness:5.5,heritage:6.5},
+ecology:5.0,gap:1,
+gapNote:{marketing:'Gateway to Northeast India. Brahmaputra city. Growing commerce hub.',reality:'Gateway status accurate. Growth real but infrastructure severely lags population influx. Northeast India\'s urban challenges systematically underrepresented nationally.'},
+econNote:{scale:'Gateway trade, oil (OIL/IOC refineries), government, growing commerce. Small but growing.',resilience:'Gateway dependency concentration risk. Oil provides some industrial base. Vulnerable to infrastructure disruption.'},
+ecologyNote:'Brahmaputra: ecologically significant and less industrially degraded than Ganga/Yamuna — tidal volume provides natural flushing. Guwahati\'s hills being stripped for construction. Annual flooding worsening. Natural asset base high but governance of it very poor.',
+notes:{transport:'City buses limited coverage. No metro. Traffic often chaotic. Brahmaputra ferry crossings functional.',publicspace:'Brahmaputra riverfront has potential but infrastructure inconsistent. Natural geography compensates.',cleanliness:'Significant challenge. Rapid urbanisation without corresponding infrastructure. Flooding creates acute seasonal hygiene crises.',costliving:'Good value. Northeast food culture distinctive and affordable. Rising with commercial growth.',entertainment:'Bihu festival — one of India\'s great seasonal celebrations. Assamese film and music culture.',openness:'Complex ethnic dynamics that don\'t map onto standard Hindu-Muslim framework. NRC/CAA process created acute anxiety in Muslim Bengali communities.',heritage:'Kamakhya Temple: one of India\'s most significant Shakti pithas — living, powerful, unique. Ahom dynasty repeatedly defeated Mughal armies. Northeast cultural traditions deeply distinct and nationally underrepresented.'},
+verdict:'A city growing faster than its governance can manage, sitting on one of the world\'s great rivers, serving as gateway to one of India\'s most culturally distinct and nationally neglected regions.'},
+
+{name:'Ahmedabad',state:'Gujarat',shortState:'GJ',region:'southasia',tier:'metro',
+scores:{transport:6.5,publicspace:5.5,cleanliness:6.5,costliving:7.0,econScale:7.5,econResilience:7.5,entertainment:4.0,openness:3.5,heritage:7.5},
+ecology:5.0,gap:3,
+gapNote:{marketing:'"Vibrant Gujarat." Business-friendly. World Heritage City. Clean and developed.',reality:'Business and heritage claims largely accurate. The communal geography and minority experience are systematically absent from city promotion.'},
+econNote:{scale:'Textiles, pharma, chemicals, diamond trading, GIFT City finance, petrochemicals. Large and diversified.',resilience:'Industrial diversification across non-correlated sectors. Solid base.'},
+ecologyNote:'Sabarmati managed but artificial. Groundwater stress significant. Industrial zones in Naroda and Vatva have documented contamination history. Net: moderately stressed, better than Delhi, worse than southern cities.',
+notes:{transport:'Janmarg BRTS: one of India\'s best BRT systems. Metro operational.',publicspace:'Sabarmati Riverfront impressive infrastructure but community displacement. Kankaria Lake renovated.',cleanliness:'Relatively clean by west Indian standards. Swachh rankings credible here. Industrial contamination in Naroda-Vatva documented.',costliving:'Good value. Dry state paradoxically reduces some social spending categories.',entertainment:'Severely limited. No alcohol means no bar/pub culture. Navratri spectacular. Kite Festival world-scale.',openness:'The honest score: a floor. 2002 pogrom shaped residential geography that persists. Minority communities calculate safety by neighbourhood. Present condition, not historical footnote.',heritage:'Walled city UNESCO World Heritage — pol houses, stepwells, Jama Masjid, Sidi Saiyyed Mosque. Sabarmati Ashram. Sultanate-era architecture extraordinary.'},
+verdict:'Economically competent, historically extraordinary — but the openness score is a hard floor. A city where significant portions of the population navigate daily life with a safety calculus that no economic achievement can paper over.'},
+
+// ---- EAST ASIA ----
+{name:'Tokyo',state:'Japan',shortState:'JP',region:'eastasia',tier:'metro',
+scores:{transport:10.0,publicspace:7.5,cleanliness:9.5,costliving:7.0,econScale:9.5,econResilience:8.5,entertainment:9.5,openness:7.0,heritage:8.0},
+ecology:7.5,gap:1,
+gapNote:{marketing:'World\'s greatest city. Efficient, clean, safe, cultured.',reality:'Largely accurate. The efficiency is real. The social pressures — work culture, isolation, demographic crisis — are real but separate from physical city quality.'},
+econNote:{scale:'Japan\'s economic capital and one of the world\'s largest urban economies. Finance, tech, manufacturing, media, fashion.',resilience:'Mature, diversified economy. Vulnerability is macro-Japanese — demographic decline, deflation history — rather than city-specific concentration risk.'},
+ecologyNote:'Extraordinary river restoration — Sumida and other rivers dramatically cleaner than 50 years ago. Green cover maintained through city planning requirements. Air quality among the best of any global megacity. Earthquake preparedness infrastructure serves ecological resilience. Tokyo demonstrates that a megacity can genuinely recover ecologically.',
+notes:{transport:'The global standard. 13 metro lines, extensive commuter rail, buses, near-perfect punctuality, virtually every neighbourhood covered.',publicspace:'Ueno Park, Shinjuku Gyoen, Imperial Palace surrounds, neighbourhood shrines as daily public space. Less democratic by class than Indian public spaces — implicit social codes.',cleanliness:'Extraordinary and genuine. No public waste bins yet immaculate streets — civic norm enforced socially not just institutionally. Toilets world-famous. A genuine benchmark.',costliving:'Better than reputation suggests. PPP-adjusted, Tokyo is cheaper than London, NYC, or Sydney for comparable lifestyle. Public transport cost fraction of car ownership elsewhere.',entertainment:'Probably the world\'s deepest entertainment ecosystem. Gaming, anime, jazz, classical, kabuki, rakugo, street fashion, food at every price point, 24-hour culture.',openness:'Complex. Safe for women at night — genuinely. LGBTQ+ culture vibrant in Shinjuku ni-chome but legal protections lagging. Structural exclusion of non-Japanese visible in housing and employment.',heritage:'Edo period layers visible in temple and shrine culture, craft traditions, urban neighbourhood patterns. Imperial heritage. Meiji modernisation layer. Post-war reconstruction layer. Living craft tradition stronger than almost any city of comparable modernity.'},
+verdict:'The closest thing the world has to a city that works in every physical dimension. Its limitations are social and demographic rather than infrastructural. A benchmark against which other cities should measure themselves honestly.'},
+
+{name:'Singapore',state:'Singapore',shortState:'SG',region:'eastasia',tier:'metro',
+scores:{transport:9.5,publicspace:7.5,cleanliness:9.5,costliving:5.5,econScale:8.5,econResilience:8.0,entertainment:7.5,openness:6.0,heritage:5.5},
+ecology:8.0,gap:2,
+gapNote:{marketing:'Garden city. World\'s best airport. Global hub. Cleanest city in Asia.',reality:'Physical city largely matches promotion. LGBTQ+ legal restrictions, media freedom ranking near bottom globally, death penalty for drug offences — these are absent from global city promotion.'},
+econNote:{scale:'Global financial hub, port (world\'s second busiest), advanced manufacturing, biomedical, logistics, tourism.',resilience:'Extremely diversified for its size. Port + finance + manufacturing + tourism. Geopolitical risk (Straits of Malacca dependency) is real but managed.'},
+ecologyNote:'Extraordinary managed ecology — 47% green cover in a city-state through deliberate policy. Marina Reservoir freshwater management world-class. Nature reserves genuine. Heavily air-conditioned artificial ecology is a real critique. Context: Singapore in 1965 had indicators comparable to Colombo. Its current ecological status is a product of specific political and economic conditions unavailable to most post-colonial cities.',
+notes:{transport:'MRT excellent — clean, frequent, air-conditioned, comprehensive. Deliberate policy to discourage car ownership (COE system) is expensive but ecologically rational.',publicspace:'Gardens by the Bay, East Coast Park, Botanic Gardens (UNESCO), Sentosa, neighbourhood parks in every HDB estate. Well-maintained and free.',cleanliness:'Genuine and world-class. Institutional enforcement (fines) plus civic culture. Residential estates and markets equally clean. A benchmark.',costliving:'High absolute costs even PPP-adjusted. Housing (HDB system provides subsidised public housing to 80%+ of population) moderates the worst extremes. Hawker centres as subsidised food infrastructure is exceptional policy.',entertainment:'Hawker culture (UNESCO-listed) world-class. Marina Bay Sands, Esplanade. International touring acts. Night safari. Cultural scene has depth but city-state scale limits breadth.',openness:'Section 377A (criminalising gay sex) repealed in 2022 but marriage equality absent. Press freedom ranking near bottom globally. Racial hierarchy between Chinese, Malay, Indian communities structurally embedded. Functional safety and social order is high. Political and social freedom substantially constrained.',heritage:'Peranakan culture (Straits Chinese) genuinely distinctive and well-preserved. Colonial civic district. Little India and Chinatown as living communities. Historically thin — Singapore\'s pre-colonial settlement was small.'},
+verdict:'The most efficiently managed city in the world and a product of very specific conditions — city-state governance, strategic geography, and global capital flows that post-colonial cities were structurally excluded from accessing. Its scores are honest and the context note explains what enabled them.'},
+
+{name:'Seoul',state:'South Korea',shortState:'KR',region:'eastasia',tier:'metro',
+scores:{transport:9.5,publicspace:7.5,cleanliness:8.5,costliving:6.5,econScale:8.5,econResilience:7.5,entertainment:8.5,openness:7.0,heritage:7.5},
+ecology:7.0,gap:1,
+gapNote:{marketing:'K-culture global hub. Dynamic, modern, safe. Hallyu capital.',reality:'Largely accurate. The intense work/study pressure culture, demographic crisis (world\'s lowest birth rate), and mental health statistics are real shadows not captured in the global image.'},
+econNote:{scale:'South Korea\'s economic capital. Samsung, Hyundai, LG, SK headquarters. Finance, entertainment (K-pop), tech, manufacturing.',resilience:'Chaebols create some concentration risk. But entertainment + tech + manufacturing + finance provides real diversification. K-culture as economic export is genuinely new and significant.'},
+ecologyNote:'Cheonggyecheon stream restoration — elevated highway demolished, stream restored — is one of the world\'s most cited urban ecological restoration projects. Han River corridor well-maintained. Air quality affected by Yellow Dust from Chinese desertification and domestic coal. Net: genuinely improving trajectory, one of Asia\'s better-performing major cities on ecology.',
+notes:{transport:'World-class — comparable to Tokyo. 9 metro lines, comprehensive coverage, T-money card integrates everything, 24-hour operation on weekends. Cheaper than Tokyo.',publicspace:'Han River Parks (Yeouido, Banpo, Ttukseom) remarkable — free, multi-use, all classes. Bukhansan National Park within city limits. Cheonggyecheon stream walkway.',cleanliness:'High and genuine. Street cleanliness, transit systems, public toilets all excellent. Air quality the honest challenge — Yellow Dust season real.',costliving:'Better than reputation suggests PPP-adjusted. Cheaper than Tokyo, London, NYC. Street food extraordinary value. Rising housing costs in Gangnam zone real.',entertainment:'K-pop, K-drama global influence real not manufactured. Hongdae live music. PC bang culture. Food scene from street tteokbokki to top-tier restaurants. Jjimjilbang culture as social institution.',openness:'Rapidly shifting. LGBTQ+ rights not legally equal but Seoul Pride is Asia\'s largest. Confucian hierarchical culture visible in workplace. Discrimination against Southeast Asian workers documented. More open than Tokyo and improving meaningfully.',heritage:'Gyeongbokgung Palace, Changdeokgung Palace (UNESCO), Jongmyo Shrine (UNESCO), Bukchon Hanok Village. Joseon dynasty (600 years) heritage. Living traditions — hanbok, hanji, pojagi, pansori — being actively preserved and globalised. DMZ proximity as contested heritage site.'},
+verdict:'One of the world\'s most dynamic cities — extraordinary cultural export power, world-class infrastructure, and an improving openness trajectory. A city that has compressed a century of development into 40 years and shows both the achievement and the cost.'},
+
+{name:'Shanghai',state:'China',shortState:'CN',region:'eastasia',tier:'metro',
+scores:{transport:9.5,publicspace:7.0,cleanliness:8.5,costliving:6.0,econScale:9.5,econResilience:8.0,entertainment:7.5,openness:3.5,heritage:8.0},
+ecology:5.5,gap:3,
+gapNote:{marketing:'Global financial hub. Most cosmopolitan Chinese city. Vibrant, modern, open.',reality:'Physical city largely matches promotion. Surveillance infrastructure, internet censorship, restriction on assembly, and the 2022 COVID lockdown confining 25 million for months are systematically absent from global city promotion.'},
+econNote:{scale:'China\'s financial capital. Shanghai Stock Exchange, major corporate HQs, port (world\'s busiest by container volume), advanced manufacturing, services.',resilience:'Diversified across finance, manufacturing, trade, services. State direction provides stability but also concentration risk if political priorities shift.'},
+ecologyNote:'Huangpu river quality improved substantially from 1980s nadir — real progress. Air quality improved significantly since 2013 peak. Green cover expanding. Subsidence risk significant. Yangtze Delta industrial corridor creates regional air quality challenges. Net: genuine improvement trajectory, better than Beijing.',
+notes:{transport:'Metro system world-class — 20 lines, 508 stations, covers the entire city comprehensively. One of the world\'s genuinely great transport systems.',publicspace:'The Bund, People\'s Square, Fuxing Park, Jing\'an Sculpture Park. Well-maintained. However "public space" in the political sense — assembly, protest, free expression — is absent. Physical public space good; political public space non-existent.',cleanliness:'High and genuine. Street sweeping frequent, transit immaculate, public spaces well-maintained. A benchmark in Asian megacity management.',costliving:'Rising rapidly. Housing in central Shanghai comparable to London or Paris. PPP-adjusted, still reasonable for professionals but working class increasingly displaced.',entertainment:'Bund bar and restaurant scene world-class. Jazz culture (legacy of 1930s jazz age). Contemporary art scene (M50, West Bund). Excellent food from every Chinese region and internationally.',openness:'Honest score: 3.5. Great Firewall blocks major international information services. Surveillance infrastructure — facial recognition, movement tracking, social media monitoring — the world\'s most extensive. 2021 ban on Pride events. 2022 COVID lockdown confined 25 million people for months with police enforcement. LGBTQ+ community exists but under significant constraint.',heritage:'The Bund: extraordinary Art Deco and colonial-era architecture. French Concession: Shikumen housing as unique urban form. Pre-colonial Shanghai: Wu culture, Kunqu opera, silk traditions. The 1930s jazz age layer. Each era distinct and layered.'},
+verdict:'An extraordinary physical city — transport world-class, heritage genuinely deep, entertainment sophisticated, cleanliness high — inside a political system whose surveillance and control infrastructure has no parallel anywhere in this index. The two things coexist. Both are real.'},
+
+{name:'Beijing',state:'China',shortState:'CN',region:'eastasia',tier:'metro',
+scores:{transport:9.0,publicspace:7.0,cleanliness:8.0,costliving:6.0,econScale:9.0,econResilience:7.5,entertainment:7.5,openness:3.0,heritage:9.5},
+ecology:3.5,gap:3,
+gapNote:{marketing:'Ancient capital. Cultural centre. Modern megacity. Olympic city.',reality:'Physical city largely as promoted. Political constraints — surveillance, censorship, treatment of ethnic minorities, demolition of hutong neighbourhoods — systematically absent from global promotion.'},
+econNote:{scale:'China\'s political and increasingly financial capital. Tech giants (Baidu, ByteDance, DiDi HQ), state enterprises, government.',resilience:'Political capital status provides strategic stability. But state direction and political risk create a different concentration risk — policy shifts can reshape sectors overnight as seen in tech and education crackdowns.'},
+ecologyNote:'Significant improvement since 2013 Airpocalypse — PM2.5 levels down ~50% from peak but still above WHO guidelines in winter. Groundwater critical — North China Plain aquifer depletion is a national emergency. Green belt programmes real. Sandstorms from desertification to the north. Net: improving trajectory but starting from critically stressed baseline.',
+notes:{transport:'Metro system extraordinary — 27 lines, 490+ stations, among the world\'s most extensive. Bus network comprehensive. High-speed rail hub. Above-ground traffic remains severe.',publicspace:'Temple of Heaven Park, Beihai Park, Summer Palace grounds, hutong courtyards as neighbourhood public space. Same caveat as Shanghai: physical public space good; political public space absent.',cleanliness:'High by historical standards. Genuine improvement. Air quality the honest challenge — winter pollution episodes real even post-improvement.',costliving:'Rising significantly. Housing in central Beijing expensive. PPP-adjusted comparable to Shanghai.',entertainment:'798 Art District world-class. Hutong bar culture. Peking duck, regional Chinese cuisines. Strong entertainment ecosystem but political constraints affect cultural programming.',openness:'Honest score: 3.0. The most extensive surveillance infrastructure in the world. Social credit system operational. Great Firewall. Restrictions on religious practice (particularly Uyghur Muslims, Tibetan Buddhists). Treatment of ethnic minorities documented by international human rights organisations.',heritage:'Forbidden City (UNESCO): one of the world\'s greatest architectural complexes. Temple of Heaven (UNESCO). Summer Palace (UNESCO). Great Wall proximity. Ming-era hutong neighbourhoods (many demolished, some preserved). 3,000+ years as capital city. Extraordinary density — arguably the deepest heritage of any city in this index.'},
+verdict:'Perhaps the world\'s deepest heritage city, with transport infrastructure that rivals Tokyo, inside a political control system that has no parallel in this index. The heritage and the surveillance coexist. A city that is simultaneously extraordinary and, for those who run against its political grain, profoundly constraining.'},
+
+{name:'Chongqing',state:'China',shortState:'CN',region:'eastasia',tier:'metro',
+scores:{transport:8.5,publicspace:6.5,cleanliness:7.5,costliving:7.5,econScale:8.0,econResilience:7.0,entertainment:6.5,openness:3.5,heritage:7.0},
+ecology:5.0,gap:2,
+gapNote:{marketing:'China\'s largest municipality. Mountain city. Spicy food capital. Cyberpunk aesthetic destination.',reality:'Physical distinctiveness accurately promoted. Political constraints same as other Chinese cities. Speed of development has erased significant heritage without acknowledgement.'},
+econNote:{scale:'Major automotive manufacturing hub, electronics, chemicals, growing tech. World\'s most populous municipality (32 million in greater area).',resilience:'Manufacturing + automotive + tech + services. Real diversification. Automotive EV transition risk real but Chongqing is pivoting faster than most.'},
+ecologyNote:'Yangtze river at Chongqing in relatively better condition than lower reaches. Industrial legacy creates localised contamination. Air quality affected by topography — mountain bowl traps emissions. Rapid urban construction stripping hillside vegetation. Net: moderate stress, improving air but construction-driven green cover loss.',
+notes:{transport:'The world\'s most remarkable urban transport by pure visual drama — Liziba station where Line 2 passes through a residential building\'s 6th-9th floors is genuinely extraordinary. Cable cars cross the Yangtze. Monorail above the city. Network is comprehensive and serves the impossible topography.',publicspace:'The city\'s verticality is itself a public experience. Jiefangbei pedestrian zone. Night views from Nanshan. The topography forces public urban interaction that flat cities don\'t generate.',cleanliness:'Better than expected for industrial city of this scale. Genuine improvement over last decade.',costliving:'Among the better PPP-adjusted values in this index for a large city. Housing, food (hotpot for ¥30-50/person), transport all affordable relative to income levels.',entertainment:'Spicy hotpot culture is a world-class culinary and social institution. Night views and vertical city experience unique globally. Growing arts scene.',openness:'Same political constraints as all Chinese cities. No additional openness; no additional restriction beyond the national baseline.',heritage:'Three Gorges cultural history — much submerged by the dam, a genuine loss. Ba-Yu ancient culture distinct from Han Chinese mainstream. Wartime capital (1937-1945): Chongqing resisted Japanese bombing — sites preserved. Stilted houses (diaojiaolou) as vernacular architecture.'},
+verdict:'The world\'s most visually extraordinary city — a vertical megacity built on impossible topography at the confluence of two rivers. Nothing else looks like Chongqing. The political constraints are national and real. The value proposition is among the best of any major city in this index.'},
+
+// ---- AFRICA ----
+{name:'Casablanca',state:'Morocco',shortState:'MA',region:'africa',tier:'metro',
+scores:{transport:6.0,publicspace:6.0,cleanliness:6.0,costliving:6.5,econScale:6.5,econResilience:6.0,entertainment:6.0,openness:5.0,heritage:6.5},
+ecology:5.5,gap:2,
+gapNote:{marketing:'Gateway to Africa. Economic capital. Cosmopolitan. Hassan II Mosque.',reality:'Economic gateway claim accurate. Cosmopolitan brand papers over real constraints on personal freedoms — LGBTQ+ criminalised, women\'s freedoms enforced socially, Darija vs French class stratification.'},
+econNote:{scale:'Morocco\'s economic capital. Finance, industry, port (Tanger Med proximity), phosphates (Morocco controls 70%+ of world reserves), tourism, growing BPO sector.',resilience:'Diversified economic base. Phosphate monopoly is strategic asset. Tourism vulnerability demonstrated by COVID. Growing BPO sector.'},
+ecologyNote:'Atlantic coastline relatively healthy. Oued Bouskoura drainage issues. Air quality variable — industrial emissions from Ain Sebaa zone. Argan forest ecosystem under pressure regionally. Some genuine urban greening initiatives. Net: moderate stress, better than many African metros.',
+notes:{transport:'Casablanca Tramway: two lines, functioning. Bus network covers city. No metro. Taxi culture ubiquitous. Reasonable for African city context.',publicspace:'Corniche coastal promenade. Arab League Park. Public space accessible but gendered in practice — women\'s experience of public space different from men\'s.',cleanliness:'Better than many African cities. Central areas maintained. Hassan II Mosque area immaculate.',costliving:'Good PPP-adjusted value. Moroccan food culture world-class at low cost. Housing affordable relative to income.',entertainment:'Hassan II Mosque: architecturally extraordinary — one of the world\'s great mosque buildings, partially open to non-Muslims. Corniche cafe culture. Moroccan music (gnawa, rai, chaabi). Art Deco architecture as cultural experience.',openness:'Significant constraints. Homosexuality criminalised (Article 489 — up to 3 years imprisonment). Women\'s rights formally stronger than Gulf states but social enforcement of dress norms real. Press freedom limited — journalists covering sensitive topics face prosecution.',heritage:'Hassan II Mosque (1993): one of the world\'s great contemporary religious buildings. Mauretania Tingitana Roman heritage nearby. French Protectorate Art Deco architecture remarkable and largely unrecognised internationally. Amazigh (Berber) cultural heritage underlayer.'},
+verdict:'A functional and culturally interesting North African city with genuine economic dynamism and one of the world\'s great modern religious buildings — inside a legal framework that criminalises LGBTQ+ existence and constrains press freedom in ways that affect real populations daily.'},
+
+{name:'Addis Ababa',state:'Ethiopia',shortState:'ET',region:'africa',tier:'metro',
+scores:{transport:4.5,publicspace:5.0,cleanliness:4.5,costliving:7.5,econScale:5.5,econResilience:5.0,entertainment:5.0,openness:5.0,heritage:7.5},
+ecology:5.5,gap:1,
+gapNote:{marketing:'African Union seat. Ancient Ethiopian civilisation. Coffee origin. Rising African city.',reality:'Accurately described without overselling. The Tigray conflict (2020-2022) and its aftermath are real political context rarely mentioned in city promotion.'},
+econNote:{scale:'Ethiopia\'s economic capital and African Union seat. Government, services, manufacturing (leather, textiles), growing tech, Bole International Airport as Africa hub.',resilience:'Government + African Union + manufacturing + aviation: some diversification. Ethiopian Airlines\' extraordinary growth is a genuine resilience asset. Political fragility is a real risk.'},
+ecologyNote:'High altitude (2,355m) provides natural air quality benefits and cooler temperatures. Entoto mountain forest significant but under deforestation pressure. Akaki river polluted by industrial effluents. Rapid urbanisation without adequate infrastructure. Some genuine tree-planting initiatives real in scale. Net: moderate stress with altitude as natural asset.',
+notes:{transport:'Addis Ababa Light Rail: first in Sub-Saharan Africa, operational since 2015. Minibus taxis ubiquitous. Traffic increasingly congested. Better than most Sub-Saharan African cities.',publicspace:'Meskel Square: one of Africa\'s great civic plazas — the annual Meskel ceremony draws hundreds of thousands. Unity Park (former imperial palace grounds). Entoto Natural Park.',cleanliness:'Significant challenge. Rapid urbanisation outpaces waste infrastructure. Some areas well-maintained, periphery less so.',costliving:'Excellent PPP-adjusted value. Ethiopian coffee ceremony culture. Injera with various stews. Housing accessible. Among the better values in this index.',entertainment:'Ethiopian food culture: injera-based cuisine extraordinarily distinctive, coffee ceremony as social institution. Music (Ethio-jazz legacy of Mulatu Astatke globally significant). Meskel and Timkat festivals extraordinary.',openness:'Complex. Multi-ethnic city (Oromo, Amhara, Tigrinya, others) with ethnic tensions real — the Tigray conflict demonstrated this at enormous scale. LGBTQ+ rights criminalised. Press freedom limited. The city functions but political constraints are real.',heritage:'African Union headquarters as heritage of pan-African aspirations. Ethiopian cuisine and coffee ceremony as living heritage — Ethiopia is the origin of coffee. Lalibela proximity. Ethiopia\'s continuity as the only African nation to resist colonisation (Battle of Adwa 1896) is a heritage of independence of global significance.'},
+verdict:'A city carrying the weight of one of the world\'s oldest civilisations, the aspirations of a continent (as African Union seat), and the fragility of rapid development without adequate infrastructure. The coffee ceremony alone is a cultural heritage of extraordinary depth.'},
+
+{name:'Durban',state:'South Africa',shortState:'ZA',region:'africa',tier:'tier2',
+scores:{transport:4.5,publicspace:6.5,cleanliness:5.5,costliving:6.5,econScale:6.0,econResilience:5.5,entertainment:6.0,openness:6.0,heritage:5.5},
+ecology:6.0,gap:1,
+gapNote:{marketing:'Surfing capital. Warm weather year-round. Most Indian city outside India. Friendly port city.',reality:'Indian community and warm climate claims accurate. Crime affecting daily mobility is real. Service delivery failures in townships remain severe. Post-apartheid spatial geography still deeply visible.'},
+econNote:{scale:'Port (busiest in Sub-Saharan Africa), automotive manufacturing (Toyota), tourism, sugar, petroleum refining.',resilience:'Port + automotive + tourism + petrochemical: reasonable diversification. Port is the strategic anchor — most of Gauteng\'s imports and exports move through Durban.'},
+ecologyNote:'Indian Ocean coastline relatively healthy. uMngeni river polluted by industrial and informal settlement runoff. Berea Ridge forest as regional ecological asset. Air quality variable. 2022 floods (catastrophic, climate-linked) exposed urban vulnerability. Net: moderate baseline with increasing climate stress.',
+notes:{transport:'Durban People Mover BRT: operational but limited coverage. Minibus taxis dominate. No rail serving the city effectively. Car dependent.',publicspace:'Golden Mile beachfront: a major asset — long, warm, accessible, genuinely integrated post-apartheid. uShaka Marine World area. Botanical Gardens (oldest in Africa).',cleanliness:'Variable. Beachfront and Berea maintained. Warwick Junction and some township areas challenging.',costliving:'Reasonable by South African standards. Below Cape Town and Johannesburg significantly. Bunny chow culture and breyani extraordinary value. Warm climate reduces energy costs.',entertainment:'Bunny chow culture — genuinely unique culinary tradition. Surfing culture. Moses Mabhida Stadium. Warm ocean year-round. Indian cultural traditions (Diwali celebrations large).',openness:'Post-apartheid South Africa has formal equality — LGBTQ+ rights constitutionally protected. But spatial apartheid geography persists in housing and income distribution. Crime affects black residents in townships disproportionately. The formal legal openness coexists with real structural inequality.',heritage:'Mahatma Gandhi\'s South Africa connection is Durban-based — he worked here 1893-1914 and his political transformation happened here. Indian cultural heritage (largest Indian diaspora community in Africa). Zulu cultural heritage. Anglo-Zulu War sites in proximity.'},
+verdict:'A warm, genuinely pleasant port city with extraordinary culinary culture and the continent\'s most important container port — still defined in its spatial geography by apartheid history in ways that formal legal equality has not yet resolved.'},
+
+{name:'Tripoli',state:'Libya',shortState:'LY',region:'africa',tier:'tier2',
+scores:{transport:3.0,publicspace:3.5,cleanliness:4.0,costliving:6.0,econScale:4.0,econResilience:2.5,entertainment:3.5,openness:3.5,heritage:7.0},
+ecology:4.5,gap:2,
+gapNote:{marketing:'Mediterranean city. Oil wealth. Libyan heritage.',reality:'What promotion exists is historical. The current reality — dual government (GNU in Tripoli vs eastern administration), militia presence, infrastructure in disrepair from 2011 revolution and subsequent conflict — is the city\'s defining present context.'},
+econNote:{scale:'Oil revenues underpin the economy but conflict has severely disrupted distribution and investment. Port, trade, government. Smaller functioning base than pre-2011.',resilience:'Almost entirely oil-dependent with revenues disputed between competing governments. The least resilient economy in this index by significant margin.'},
+ecologyNote:'Mediterranean coastline historically healthy but conflict has disrupted environmental governance. Industrial facilities damaged in conflict operate without environmental oversight. Solid waste management severely compromised by political fragmentation. Net: baseline Mediterranean ecology degraded by governance collapse.',
+notes:{transport:'Limited and unreliable. Vehicle-based. Conflict damage to road infrastructure in places. No public transit system functioning reliably. Private cars and informal taxis dominate.',publicspace:'Martyrs\' Square: historically significant civic space, used for both Gaddafi-era rallies and 2011 revolutionary gatherings. Some coastal promenade. Conflict has limited free public movement.',cleanliness:'Waste management severely compromised by political fragmentation. Inconsistent collection. Below this index\'s average significantly.',costliving:'Oil subsidies historically made basic goods affordable. Conflict has disrupted supply chains. Dinar instability creates real cost volatility.',entertainment:'Mediterranean cafe culture survives. Some traditional music and social culture. Severely constrained by security situation and militia presence.',openness:'Severely constrained. Militia presence creates de facto restrictions on movement, expression, and assembly. LGBTQ+ rights criminalised. Women\'s freedoms have faced pressure from Islamist militia groups. Journalists operate at genuine personal risk.',heritage:'Medina of Tripoli: Ottoman-era architecture, Marcus Aurelius Arch (2nd century AD), Assaraya al-Hamra (Red Castle). Leptis Magna (UNESCO) and Sabratha (UNESCO) are extraordinary Roman sites in proximity. The heritage is genuinely deep — Phoenician, Roman, Byzantine, Arab, Ottoman layers. The tragedy is that political situation restricts access to this heritage.'},
+verdict:'A city whose inclusion in this index is itself a statement: what conflict and governance collapse does to a place with genuine heritage and real people. Tripoli\'s scores are not a judgement on its residents but a documentation of what political failure costs in urban human terms. The people living in it deserve better governance than they have received.'}
+];
+
+cities.forEach(c=>{c.total=computeTotal(c);});
+
+let currentSort='total', currentFilter='all';
+
+const FILTERS={
+  all:()=>true,
+  southasia:c=>c.region==='southasia',
+  eastasia:c=>c.region==='eastasia',
+  africa:c=>c.region==='africa',
+  metro:c=>c.tier==='metro',
+  tier2:c=>c.tier==='tier2',
+  heritage8:c=>c.scores.heritage>=8,
+  gaphigh:c=>c.gap===3,
+  eco6:c=>c.ecology>=6,
+  open7:c=>c.scores.openness>=7
+};
+
+function getSorted(){
+  return [...cities].sort((a,b)=>{
+    if(currentSort==='total')return b.total-a.total;
+    if(currentSort==='gap')return b.gap-a.gap;
+    if(currentSort==='ecology')return b.ecology-a.ecology;
+    return b.scores[currentSort]-a.scores[currentSort];
+  });
+}
+
+function renderList(){
+  const sorted=getSorted();
+  const fn=FILTERS[currentFilter]||FILTERS.all;
+  const container=document.getElementById('list-view');
+  container.innerHTML='';
+  let vr=0;
+  sorted.forEach(city=>{
+    const vis=fn(city);
+    if(vis)vr++;
+    const rank=vr;
+    const rc=rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
+    const card=document.createElement('div');
+    card.className='city-card'+(vis?'':' hidden');
+
+    const pips=DIMS.map((k,i)=>`<div class="mini-pip" style="background:${heatBg(city.scores[k])};color:white" title="${DIM_LABELS[i]}: ${city.scores[k]}">${DIM_SHORT[i]}</div>`).join('')+
+      `<div class="mini-pip" style="background:${ecoBg(city.ecology)};color:white;border:1px solid rgba(255,255,255,0.3)" title="Ecology: ${city.ecology}">🌿</div>`;
+
+    const dimsHtml=DIMS.map((key,i)=>{
+      if(key==='econResilience')return'';
+      if(key==='econScale'){
+        const s=city.scores.econScale,rs=city.scores.econResilience;
+        return`<div class="dim-block economy-block">
+          <div class="dim-header"><span class="dim-name">Economy</span></div>
+          <div class="econ-subsplit">
+            <div class="econ-sub"><div class="econ-sub-label">Scale</div><div class="econ-sub-score" style="color:${scoreColor(s)}">${s}</div><div class="econ-sub-bar"><div class="econ-sub-bar-fill" style="width:${s*10}%;background:${scoreColor(s)}"></div></div></div>
+            <div class="econ-sub"><div class="econ-sub-label">Resilience</div><div class="econ-sub-score" style="color:${scoreColor(rs)}">${rs}</div><div class="econ-sub-bar"><div class="econ-sub-bar-fill" style="width:${rs*10}%;background:${scoreColor(rs)}"></div></div></div>
+          </div>
+          <div class="dim-note"><strong>Scale:</strong> ${city.econNote.scale}<br><strong>Resilience:</strong> ${city.econNote.resilience}</div>
+        </div>`;
+      }
+      const s=city.scores[key];
+      return`<div class="dim-block">
+        <div class="dim-header"><span class="dim-name">${DIM_LABELS[i]}</span><span class="dim-score ${sc(s)}">${s}</span></div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:${s*10}%;background:${scoreColor(s)}"></div></div>
+        <div class="dim-note">${city.notes[key]}</div>
+      </div>`;
+    }).join('')+`<div class="dim-block eco-block">
+      <div class="eco-standalone-label">ECOLOGY — ½ WEIGHT</div>
+      <div class="dim-header"><span class="dim-name">🌿 Ecological Stress</span><span class="dim-score eco-s" style="color:${ecoBg(city.ecology)}">${city.ecology}</span></div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:${city.ecology*10}%;background:${ecoBg(city.ecology)}"></div></div>
+      <div class="dim-note">${city.ecologyNote}</div>
+    </div>`;
+
+    card.innerHTML=`
+      <div class="card-header">
+        <div class="rank-col"><div class="rank-num ${rc}">${vis?rank:'—'}</div></div>
+        <div class="city-info">
+          <div class="city-name">${city.name}</div>
+          <div class="city-tags">
+            <span class="city-state-tag">${city.state}</span>
+            <span class="tier-tag">${city.tier==='metro'?'METRO':'TIER 2'}</span>
+            <span class="region-tag">${REGION_LABELS[city.region]||city.region}</span>
+            <span class="gap-badge ${gapClass(city.gap)}">${gapLabel(city.gap)}</span>
+          </div>
+        </div>
+        <div class="score-panel">
+          <div class="score-row">
+            <div class="total-score-big" style="color:${scoreColor(city.total)}">${city.total}</div>
+            <div class="eco-badge" style="background:${ecoBg(city.ecology)};color:white">🌿${city.ecology}</div>
+          </div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${city.total*10}%"></div></div>
+          <div class="mini-scores">${pips}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="verdict-strip">${city.verdict}</div>
+        <div class="gap-section">
+          <div class="gap-block"><div class="gap-title">📣 Marketing Narrative</div><div class="gap-text">${city.gapNote.marketing}</div></div>
+          <div class="gap-block"><div class="gap-title">🔍 Ground Reality</div><div class="gap-text">${city.gapNote.reality}</div></div>
+        </div>
+        <div class="dims-section">${dimsHtml}</div>
+      </div>`;
+    card.querySelector('.card-header').addEventListener('click',()=>card.classList.toggle('expanded'));
+    container.appendChild(card);
+  });
+}
+
+function renderHeatmap(){
+  const sorted=getSorted();
+  const table=document.getElementById('hm-table');
+  const headers=['#','City','Total',...DIM_LABELS,'🌿 Ecology','Gap'];
+  const thead='<thead><tr>'+headers.map((h,i)=>`<th${h.includes('Ecology')?' class="eco-th"':''}>${h}</th>`).join('')+'</tr></thead>';
+  const rows=sorted.map((city,idx)=>{
+    const dc=DIMS.map(k=>`<td style="background:${heatBg(city.scores[k])};color:white">${city.scores[k]}</td>`).join('');
+    return`<tr>
+      <td class="city-td" style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;padding-left:0.55rem">${idx+1}</td>
+      <td class="city-td">${city.name} <span style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">${city.shortState}</span></td>
+      <td class="total-td" style="background:${heatBg(city.total)};color:white">${city.total}</td>
+      ${dc}
+      <td class="eco-td" style="background:${ecoBg(city.ecology)};color:white">${city.ecology}</td>
+      <td class="gap-td ${gapClass(city.gap)}">${gapLabel(city.gap)}</td>
+    </tr>`;
+  }).join('');
+  table.innerHTML=thead+'<tbody>'+rows+'</tbody>';
+}
+
+function sortBy(key,btn){
+  currentSort=key;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();renderHeatmap();
+}
+function setView(v,btn){
+  document.getElementById('list-view').style.display=v==='list'?'block':'none';
+  document.getElementById('heatmap-view').style.display=v==='heatmap'?'block':'none';
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function filterBy(key,btn){
+  currentFilter=key;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+function toggleMethod(btn){
+  const body=document.getElementById('method-body');
+  body.classList.toggle('open');
+  btn.querySelector('span:first-child').textContent=body.classList.contains('open')?
+    '▼ HOW TO READ THIS INDEX — METHODOLOGY, COLONIAL HISTORY, ECOLOGY WEIGHTING, PPP ADJUSTMENT':
+    '▶ HOW TO READ THIS INDEX — METHODOLOGY, COLONIAL HISTORY, ECOLOGY WEIGHTING, PPP ADJUSTMENT';
+}
+
+renderList();renderHeatmap();
+</script>
+</body>
+</html>

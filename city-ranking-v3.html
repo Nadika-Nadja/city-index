@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Indian Cities — Ground Reality Rankings</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --surface: #faf7f2;
+  --surface2: #ede8de;
+  --border: #d4cdc0;
+  --border-dark: #b0a898;
+  --text: #1a1714;
+  --muted: #7a7168;
+  --accent: #8b3a2a;
+  --accent2: #2a5c8b;
+  --good: #2a7a4a;
+  --mid: #8b6a2a;
+  --poor: #8b2a2a;
+  --gap-low: #2a7a4a;
+  --gap-mid: #8b6a2a;
+  --gap-high: #8b2a2a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:1000;
+  opacity:0.4;
+}
+header {
+  padding: 3rem 2.5rem 2rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  border-bottom: 2px solid var(--text);
+}
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  line-height: 1.1;
+  font-weight: 700;
+}
+header h1 em { color: var(--accent); font-style: italic; }
+.header-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.8;
+}
+.header-sub {
+  margin-top: 1rem;
+  max-width: 800px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.disclaimer {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.6rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+.controls {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1.25rem 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.ctrl-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-right: 0.25rem;
+}
+.sort-btn {
+  background: none;
+  border: 1px solid var(--border-dark);
+  color: var(--muted);
+  padding: 0.3rem 0.75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+}
+.sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sort-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+.view-toggle { margin-left: auto; display: flex; gap: 0.4rem; }
+.view-btn {
+  background: none;
+  border: 1px solid var(--border-dark);
+  color: var(--muted);
+  padding: 0.3rem 0.75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.view-btn.active { background: var(--accent2); color: white; border-color: var(--accent2); }
+main {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+}
+.city-card {
+  border: 1px solid var(--border);
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+  transition: all 0.2s;
+  overflow: hidden;
+}
+.city-card:hover { border-color: var(--border-dark); box-shadow: 2px 2px 0 var(--border); }
+.city-card.expanded { border-color: var(--text); }
+.card-header {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  align-items: stretch;
+  cursor: pointer;
+  min-height: 4rem;
+}
+.rank-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+  padding: 0.75rem 0.5rem;
+}
+.rank-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  color: var(--border-dark);
+  font-weight: 700;
+}
+.rank-num.r1 { color: var(--accent); font-size: 2rem; }
+.rank-num.r2 { color: var(--text); font-size: 1.8rem; }
+.rank-num.r3 { color: var(--muted); font-size: 1.7rem; }
+.city-info {
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+.city-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.city-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.15rem;
+}
+.city-state-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.4rem;
+}
+.gap-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.5rem;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.gap-low { background:#d4edda; color:var(--gap-low); border:1px solid #a8d5b5; }
+.gap-mid { background:#fef3cd; color:var(--gap-mid); border:1px solid #e8d08a; }
+.gap-high { background:#fde8e8; color:var(--gap-high); border:1px solid #e8aaaa; }
+.score-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0.75rem 1.25rem;
+  border-left: 1px solid var(--border);
+  min-width: 180px;
+  gap: 0.4rem;
+}
+.total-score-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.score-bar-track { width:100%; height:3px; background:var(--border); }
+.score-bar-fill { height:100%; background:var(--text); transition:width 0.6s ease; }
+.mini-scores { display:flex; gap:0.2rem; flex-wrap:wrap; justify-content:flex-end; }
+.mini-pip {
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.5rem; font-weight: 500;
+}
+.card-body { display:none; border-top:1px solid var(--border); }
+.city-card.expanded .card-body { display:block; }
+.verdict-strip {
+  padding: 1rem 1.5rem;
+  background: var(--text);
+  color: var(--bg);
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.gap-section {
+  padding: 0.85rem 1.5rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.gap-block { flex:1; min-width:200px; }
+.gap-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+.gap-text { font-size:0.78rem; line-height:1.55; color:var(--text); }
+.dims-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.dim-block {
+  padding: 1rem 1.25rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.dim-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.dim-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.dim-score { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; }
+.dim-score.good { color:var(--good); }
+.dim-score.mid { color:var(--mid); }
+.dim-score.poor { color:var(--poor); }
+.dim-bar-track { height:3px; background:var(--border); margin-bottom:0.6rem; }
+.dim-bar-fill { height:100%; transition:width 0.5s ease; }
+.dim-note { font-size:0.75rem; line-height:1.55; color:var(--muted); }
+.economy-block { grid-column: span 2; }
+.econ-subsplit { display:flex; gap:1.5rem; margin-bottom:0.6rem; }
+.econ-sub { flex:1; }
+.econ-sub-label {
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.6rem; text-transform:uppercase;
+  letter-spacing:0.06em; color:var(--muted); margin-bottom:0.2rem;
+}
+.econ-sub-score { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; }
+.econ-sub-bar { height:2px; background:var(--border); margin-top:0.25rem; }
+.econ-sub-bar-fill { height:100%; }
+#radar-view { display:none; }
+.heatmap-table { width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:0.72rem; }
+.heatmap-table th {
+  padding:0.5rem 0.6rem; text-align:left;
+  background:var(--text); color:var(--bg);
+  font-weight:500; font-size:0.62rem; letter-spacing:0.06em; white-space:nowrap;
+}
+.heatmap-table td {
+  padding:0.5rem 0.6rem;
+  border:1px solid var(--border);
+  text-align:center; font-size:0.72rem; font-weight:500;
+}
+.heatmap-table tr:hover td { opacity:0.85; }
+.city-td {
+  text-align:left !important;
+  font-family:'Playfair Display',serif;
+  font-size:0.88rem !important;
+  font-weight:700 !important;
+  background:var(--surface) !important;
+  white-space:nowrap;
+}
+.total-td {
+  font-family:'Playfair Display',serif;
+  font-size:1rem !important;
+  font-weight:700 !important;
+}
+.gap-td { font-size:0.6rem !important; }
+.legend-bar {
+  display:flex; gap:1.5rem; align-items:center;
+  padding:1rem 2.5rem; max-width:1440px; margin:0 auto;
+  font-family:'IBM Plex Mono',monospace; font-size:0.65rem; color:var(--muted);
+  flex-wrap:wrap;
+}
+.legend-item { display:flex; align-items:center; gap:0.4rem; }
+.legend-swatch { width:20px; height:10px; }
+footer {
+  max-width:1440px; margin:2rem auto 0;
+  padding:1.5rem 2.5rem;
+  border-top:2px solid var(--text);
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.68rem; color:var(--muted); line-height:2;
+  display:grid; grid-template-columns:1fr 1fr; gap:2rem;
+}
+footer h4 { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--text); margin-bottom:0.5rem; }
+@media (max-width:768px) {
+  .card-header { grid-template-columns:3rem 1fr; }
+  .score-panel { display:none; }
+  .dims-section { grid-template-columns:1fr; }
+  .economy-block { grid-column:span 1; }
+  footer { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="disclaimer">INDEPENDENT — UNSPONSORED — OPINIONATED — v3.0</div>
+      <h1>Indian Cities<br><em>Ground Reality</em> Rankings</h1>
+    </div>
+    <div class="header-meta">
+      v3.0 — Feb 2026<br>
+      13 cities · 9 dimensions<br>
+      Economy: Scale + Resilience<br>
+      Heritage: revised with Dravidian correction<br>
+      Marketing vs Reality gap included
+    </div>
+  </div>
+  <div class="header-sub">
+    Most Indian city rankings serve political or commercial interests. Swachh Bharat, Smart Cities, EoDB indices all carry incentive structures that reward compliance theatre over ground truth. National vs state political dynamics further distort outcomes. This ranking tries to measure what a median resident actually experiences. Heritage scores have been corrected for a systematic bias in Indian rankings that overweights Mughal and Rajput aesthetics and underweights Dravidian civilisational continuity, maritime heritage, and living temple urbanism.
+  </div>
+</header>
+
+<div class="controls">
+  <span class="ctrl-label">SORT →</span>
+  <button class="sort-btn active" onclick="sortBy('total',this)">Overall</button>
+  <button class="sort-btn" onclick="sortBy('transport',this)">Transport</button>
+  <button class="sort-btn" onclick="sortBy('publicspace',this)">Public Space</button>
+  <button class="sort-btn" onclick="sortBy('cleanliness',this)">Cleanliness</button>
+  <button class="sort-btn" onclick="sortBy('costliving',this)">Cost vs Life</button>
+  <button class="sort-btn" onclick="sortBy('econScale',this)">Econ Scale</button>
+  <button class="sort-btn" onclick="sortBy('econResilience',this)">Econ Resilience</button>
+  <button class="sort-btn" onclick="sortBy('entertainment',this)">Leisure</button>
+  <button class="sort-btn" onclick="sortBy('openness',this)">Openness</button>
+  <button class="sort-btn" onclick="sortBy('heritage',this)">Heritage</button>
+  <button class="sort-btn" onclick="sortBy('gap',this)">Mktg Gap ↑</button>
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="setView('list',this)">LIST</button>
+    <button class="view-btn" onclick="setView('heatmap',this)">HEATMAP</button>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <div class="legend-item"><div class="legend-swatch" style="background:#2a7a4a"></div> 7.5–10 Strong</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8b6a2a"></div> 5.5–7.4 Moderate</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8b2a2a"></div> &lt;5.5 Weak</div>
+  <div class="legend-item" style="margin-left:1rem"><div class="legend-swatch" style="background:#d4edda;border:1px solid #a8d5b5"></div> Low marketing gap</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fef3cd;border:1px solid #e8d08a"></div> Moderate gap</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fde8e8;border:1px solid #e8aaaa"></div> High gap — oversold</div>
+</div>
+
+<main>
+  <div id="list-view"></div>
+  <div id="radar-view"><div style="overflow-x:auto"><table class="heatmap-table" id="heatmap-table"></table></div></div>
+</main>
+
+<footer>
+  <div>
+    <h4>Dimensions</h4>
+    Transport: network coverage, cost as % of min wage, first/last mile, all-class access<br>
+    Public Space: free access, walking distance, shade, class diversity of actual users<br>
+    Cleanliness: river health, PM2.5 annual avg, drainage in non-showcase areas<br>
+    Cost vs Life: median rent/wage ratio, public healthcare, food, schooling access<br>
+    Economy Scale: size, depth, global connectivity of economic base<br>
+    Economy Resilience: sector diversity, shock absorption, informal economy health<br>
+    Leisure: entertainment breadth, access across income levels<br>
+    Openness: women's safety at night, minority experience, caste texture, social mixing<br>
+    Heritage: depth of layering, civilisational continuity, living vs museum quality — bias-corrected for Dravidian undervaluation
+  </div>
+  <div>
+    <h4>On Heritage Scoring</h4>
+    Conventional Indian rankings systematically overweight Mughal-era monument aesthetics — large, photogenic, accessible to tourism boards. This index corrects for that bias by weighting: civilisational continuity (how long has this place been continuously inhabited and urbanised), living heritage (is the tradition still practiced, not just preserved), and geographic footprint (did this city's cultural tradition influence regions beyond itself). Under these criteria, Dravidian temple urbanism, maritime Christian heritage, and syncretic court cultures score higher than pure monument count.<br><br>
+    <h4>On the Marketing Gap</h4>
+    High gap = city is systematically oversold relative to median resident experience. Includes Swachh rankings vs river health, Smart City claims vs infrastructure, tourism branding vs safety reality, and EoDB scores vs actual business experience.
+  </div>
+</footer>
+
+<script>
+const cities = [
+  {
+    name:'Cochin', state:'Kerala', shortState:'KL',
+    scores:{ transport:7.5, publicspace:7.0, cleanliness:7.0, costliving:7.5, econScale:6.5, econResilience:7.5, entertainment:6.5, openness:8.0, heritage:7.5 },
+    gap:1,
+    gapNote:{ marketing:'Kerala\'s global city, water transport pioneer, cosmopolitan port.', reality:'Mostly accurate. Water Metro genuinely delivers. Fort Kochi heritage real. Eloor industrial belt and monsoon drainage in eastern suburbs are honest gaps the narrative skips.' },
+    econNote:{ scale:'Port, Infopark/SmartCity IT, tourism, logistics. Mid-tier but real.', resilience:'Port + IT + tourism + Gulf remittance is a genuinely diversified mix. No single shock removes the base. Gulf dependency is the residual risk.' },
+    notes:{
+      transport:'Water Metro is world-class — innovative and functional. KSRTC and city buses cover most areas. Autorickshaws with meters enforced better than most Indian cities. First/last mile weak in periphery but improving.',
+      publicspace:'Marine Drive promenade free and genuinely used by all classes. Fort Kochi open areas excellent. Some newer peripheral areas car-centric. Shade adequate in older districts, poor in reclaimed land areas.',
+      cleanliness:'Periyar water quality decent. City drains functional outside monsoon peaks. Vastly better than national average. Eloor industrial belt near Udyogamandal has documented contamination — an honest deduction from the Kerala clean narrative.',
+      costliving:'Median rent to income ratio among India\'s best for a port city. AIIMS Kochi and government hospitals accessible. Private school costs rising. Public schools still functional at primary level. Street food excellent value.',
+      entertainment:'Kochi-Muziris Biennale is internationally significant — genuinely world-scale. Rich film culture. Cafe and arts scene in Fort Kochi distinct. Limited after-midnight options. Growing steadily.',
+      openness:'Women\'s mobility notably better than national average. Visible LGBTQ+ community. Multi-religious coexistence functional in daily life. Caste present in marriage and temple access — less visible but not absent. Gulf remittance culture has imported pockets of social conservatism.',
+      heritage:'Portuguese, Dutch, British layering over pre-existing spice trade maritime history. Jewish quarter, Syrian Christian basilicas, Chinese fishing nets. Mattancherry palace murals. Living heritage — still practiced, not just preserved. Exceptional density for a mid-size city.'
+    },
+    verdict:'The most consistently liveable Indian city at its size. Not glamorous, not booming — but honest, functional, and unusually decent across class lines. The Water Metro alone is evidence that Indian cities can still build things that work.'
+  },
+  {
+    name:'Chennai', state:'Tamil Nadu', shortState:'TN',
+    scores:{ transport:7.5, publicspace:6.0, cleanliness:5.5, costliving:7.0, econScale:7.5, econResilience:8.5, entertainment:7.0, openness:6.0, heritage:8.5 },
+    gap:1,
+    gapNote:{ marketing:'Gateway to South India, IT corridor, Dravidian cultural capital.', reality:'Accurately represented without being oversold — rare for an Indian city. Systematically underranked in central government indices. The Cooum and Adyar rivers are a persistent blind spot in official narratives.' },
+    econNote:{ scale:'Auto manufacturing, IT/ITES (OMR), port trade, healthcare exports, leather, textiles, defence. Mid-to-large scale with genuine global reach.', resilience:'Arguably India\'s most sectorally diverse major city economy. Auto + port + IT + healthcare + manufacturing means no single macro shock wipes out the base. This was demonstrated through multiple downturns and the 2022-23 tech layoff cycle, which Chennai absorbed far better than Bengaluru.' },
+    notes:{
+      transport:'MRTS + Metro + Suburban Rail = India\'s most comprehensive rail network outside Mumbai. MTC buses wide coverage though crowded. Autorickshaws largely unmetered — persistent, undeniable governance failure. Last mile improving with app-based autos but not solved structurally.',
+      publicspace:'Marina Beach is a genuine world-class free public space — 13km, used by all classes, all hours, all days. Elliot\'s Beach better maintained, more curated. Inner city parks adequate. Heat limits outdoor usage April–June in ways that affect livability honestly.',
+      cleanliness:'Honest assessment required: Cooum and Adyar are biologically compromised rivers — the Cooum is essentially a sewage channel in stretches. Inner city drains in Vyasarpadi, Kolathur, Ambattur poor. Outside the IT corridor and Besant Nagar, street cleanliness inconsistent. Post-2015 flood structural improvements are real but the river crisis remains.',
+      costliving:'Reasonable and stable. Tambaram-Thiruvanmiyur corridor good value relative to income. Government hospital network (GH, Stanley, AIIMS) genuinely accessible to working class. Food culture — the finest street food ecosystem in India — at exceptional value.',
+      entertainment:'Carnatic classical music tradition has genuine global stature — not a tourist performance but a living practice with a large informed audience. Bharatanatyam, Tamil cinema as serious art (not just commercial), food culture perhaps India\'s finest at street level. Margazhi season is a world-class cultural festival that gets no international press.',
+      openness:'Conservative by southern metro standards. Women\'s mobility better than Delhi and Mumbai, harassment present in public spaces including beach areas at night. Strong Tamil linguistic identity creates real friction for non-Tamil speakers — honest if uncomfortable. Alcohol policy complex and inconsistent.',
+      heritage:'Severely underrated in national discourse. Mylapore is one of the oldest continuously inhabited urban settlements in South Asia — the agraharam streetscape, Kapaleeshwarar Tank, temple urbanism as living city planning. San Thome Basilica built over St. Thomas the Apostle\'s tomb — among the oldest Christian sites in the world. Fort St. George: oldest surviving British colonial fort in India, St. Mary\'s Church oldest Anglican church in Asia. Mahabalipuram proximity. The Dravidian architectural tradition originated here and spread across Southeast Asia — that is a civilisational heritage footprint that national rankings consistently undervalue.'
+    },
+    verdict:'The most consistently underranked major Indian city — partly political (opposition state), partly because Dravidian heritage lacks the postcard glamour of Mughal monuments, partly because Chennai has no interest in self-promotion. Its economy is India\'s most resilient, its rail network the south\'s best, its food culture among the world\'s finest, and its heritage deeper than most Indians are taught to recognise.'
+  },
+  {
+    name:'Mysore', state:'Karnataka', shortState:'KA',
+    scores:{ transport:5.0, publicspace:7.5, cleanliness:7.5, costliving:8.0, econScale:5.0, econResilience:6.0, entertainment:6.0, openness:6.0, heritage:7.5 },
+    gap:1,
+    gapNote:{ marketing:'Heritage city. Clean city. Quality of life destination. Bengaluru\'s quieter neighbour.', reality:'Largely accurate. The cleanliness is real. The heritage is real and deeper than the "palace tourism" tag suggests. The economic limitation is real and goes undermentioned.' },
+    econNote:{ scale:'BEML, JSW, Infosys campus, silk, tourism. Small base relative to Indian metros.', resilience:'Manufacturing + government + tourism: reasonable spread for city size. Not exposed to a single sector, but total scale constrains how much cushion is available.' },
+    notes:{
+      transport:'Bus network functional for city size. No metro — unlikely given population. Autorickshaws dominant. Rail connectivity to Bengaluru reasonable. Core areas walkable. Overall adequate, not exceptional.',
+      publicspace:'Chamundi Hill, KRS Backwaters, Brindavan Gardens, multiple neighbourhood parks — exceptional public space per capita for city size. Well-maintained, accessible by cheap bus from city centre. Shade and seating reasonable.',
+      cleanliness:'One of India\'s genuinely cleaner large cities. Low industrial pollution within city limits. Kabini river environs relatively healthy. Swachh Bharat rankings for Mysore are among the more credible in the country.',
+      costliving:'Outstanding ratio. A nurse\'s salary buys a decent 2BHK within 3km of the city centre. Private healthcare (Columbia Asia, Vikram) excellent and affordable. Public schools functional. Food culture (Mysore pak, set dosa, filter coffee) world-class at street prices.',
+      entertainment:'Dasara is one of India\'s genuinely great festivals — a 10-day royal procession with real historical weight, not a manufactured tourism event. Palace illumination year-round. Silk shopping as cultural experience. Restaurant scene decent. Nightlife essentially absent.',
+      openness:'Educated, relatively tolerant, readable civic culture. Conservative Kannada identity present but not aggressive in urban Mysore. Inter-community mixing limited beyond workplace. Gender dynamics improving in younger population. Less cosmopolitan than Bengaluru by significant margin.',
+      heritage:'Deeply underrated. The Mysore Palace is one of India\'s finest functioning royal spaces — not ruins, not museum, a living institution. Wodeyar court culture was exceptionally sophisticated: Carnatic music, Kuchipudi, Sanskrit literature, administration. Hoysala temples at Somanathapura within reach. The heritage here is living, not preserved. It deserves more than the "B-tier Bengaluru" tag it gets in national discourse.'
+    },
+    verdict:'India\'s most honest city in the ranking sense — what you see is what you get, and what you get is quietly excellent. The heritage-to-cost ratio is unmatched anywhere in India. The only genuine weakness is economic scale, and if you are not dependent on a large city job market, that weakness may not matter to you at all.'
+  },
+  {
+    name:'Hyderabad', state:'Telangana', shortState:'TS',
+    scores:{ transport:6.5, publicspace:5.5, cleanliness:5.5, costliving:6.5, econScale:8.5, econResilience:7.5, entertainment:7.0, openness:6.5, heritage:8.0 },
+    gap:2,
+    gapNote:{ marketing:'"City of Pearls." Cyberabad global tech hub. Biryani capital. Nizami syncretic culture.', reality:'Economic and heritage claims largely accurate. HITECH City\'s pedestrian hostility, Musi river health, and Hussain Sagar\'s pollution history are consistent blind spots in the city\'s promotion.' },
+    econNote:{ scale:'Second largest IT cluster, global pharma manufacturing hub, aerospace (DRDO, BDL, HAL), life sciences. Large and growing.', resilience:'IT + pharma + aerospace + manufacturing: unusually well-diversified for a tier-1 tech city. Pharma exports are genuinely countercyclical — when economies contract, medicine demand doesn\'t.' },
+    notes:{
+      transport:'Metro excellent — reliable, clean, expanding. TSRTC buses wide network. But HITECH City was designed entirely for cars: last mile from metro to tech campus a genuine failure that affects hundreds of thousands daily.',
+      publicspace:'KBR National Park is a genuine urban lung. Hussain Sagar improved post-cleanup. Banjara Hills / Jubilee Hills residential areas have almost no walkable public space — designed for private car movement only.',
+      cleanliness:'Better urban feel than Delhi and Mumbai. Old city Charminar area hygiene variable. Musi river is a documented environmental failure — receives untreated sewage. Patancheru industrial area has contamination history.',
+      costliving:'Best value of major tech metros. Good private hospitals (CARE, Apollo, Yashoda). Rent-to-income ratio notably better than Bengaluru for comparable lifestyle — the most rational tech city for value.',
+      entertainment:'Biryani culture is genuine lifestyle infrastructure, not a tourist tag. Old city bazaars, Laad Bazaar, Chowmahalla Palace as living spaces. Ramzan street culture extraordinary. Stand-up and live music growing. Imax and multiplex culture well-developed.',
+      openness:'Hindu-Muslim syncretic culture visible and largely real in old city — not purely tourism branding. More relaxed daily atmosphere than North Indian cities. Patriarchal undercurrents in both communities. Women\'s safety better than Delhi, below south Indian city average.',
+      heritage:'Charminar, Golconda Fort, Qutb Shahi Tombs, Chowmahalla Palace, Salar Jung Museum — exceptional density. Nizami culture is one of India\'s most sophisticated court traditions: Deccani miniature painting, Urdu literature, classical music, jewellery, cuisine. Living culture, not only monuments.'
+    },
+    verdict:'The most improved major Indian city of the last decade. Hyderabad has achieved something rare: Bengaluru-scale economic dynamism with functioning infrastructure, a pharma and aerospace base that adds genuine resilience, better costs, and world-class heritage. Increasingly the most rational choice among Indian tech metros for anyone thinking clearly about quality of life.'
+  },
+  {
+    name:'Kolkata', state:'West Bengal', shortState:'WB',
+    scores:{ transport:7.0, publicspace:7.0, cleanliness:4.0, costliving:8.0, econScale:4.5, econResilience:4.5, entertainment:7.5, openness:6.5, heritage:9.0 },
+    gap:2,
+    gapNote:{ marketing:'"Cultural capital of India." City of Joy. Intellectual hub. Bengali renaissance.', reality:'Cultural capital claim largely earned — the intellectual and artistic tradition is real. "City of Joy" papers over economic stagnation and political capture. Brain drain is severe and structural.' },
+    econNote:{ scale:'Port in relative decline, industrial base hollowed out post-1990s, Haldia petrochemicals, some IT. Small and not growing relative to city\'s population and potential.', resilience:'Poorly diversified and structurally declining. Port losing market share. Industrial capacity underutilised. Political instability actively deters investment. This is a genuine vulnerability, not a narrative to be softened.' },
+    notes:{
+      transport:'India\'s first metro — still functioning, being extended northward. Trams: dying but historically significant as one of the last tram networks in South Asia. Suburban rail extensive. Hooghly ferries a genuine transport mode, not just tourism. Traffic managed better than Bengaluru despite higher density — a real achievement.',
+      publicspace:'Maidan is extraordinary — hundreds of acres of genuinely open, free, multi-class public land in the middle of a megacity. Victoria Memorial gardens, Eden Gardens surroundings. By any global standard this is remarkable urban public space that few cities of any size can match.',
+      cleanliness:'Cannot be scored charitably. Hooghly receives significant untreated sewage. Street cleanliness in Howrah, North Kolkata, outer wards poor. Monsoon drainage inadequate in low-lying areas. Real public health consequence, not an aesthetic complaint.',
+      costliving:'Outstanding. What is a shared PG room in Mumbai is a full flat in Kolkata. Street food price-to-quality ratio genuinely world-class. Government healthcare (SSKM, NRS, Medical College) accessible though strained. The value proposition here is one of India\'s strongest.',
+      entertainment:'Durga Puja is UNESCO-recognised and genuinely world-scale — the transformation of the city for five days has no parallel in India. Bengali intellectual culture: literature (Tagore, Bibhutibhushan), art cinema (Ray, Ghatak, Sen), Rabindra Sangeet, classical music, coffee house adda as civic institution. Real depth that has influenced all of Indian culture.',
+      openness:'Left-intellectual tradition creates real cross-class social tolerance — more visible than in comparable Indian cities. Racial and community mixing more genuine than many cities. Gender safety mixed — better than Delhi, inconsistent across different areas of the city.',
+      heritage:'Among the deepest in India. Victoria Memorial, Writers\' Building, Howrah Bridge, dozens of European-era institutions. Tagore\'s Jorasanko Thakur Bari. Belur Math. Kalighat. The colonial layering is matched by a Bengali literary and artistic heritage of global significance. Two Nobel laureates called this city home.'
+    },
+    verdict:'A city that was once one of the world\'s great metropolises and is still extraordinary — just economically adrift and politically captured. The heritage, culture, public space, and value for money are genuinely world-class. The economy and cleanliness are serious structural vulnerabilities. Kolkata is what happens when a great city is let down by its politics over several generations.'
+  },
+  {
+    name:'Trivandrum', state:'Kerala', shortState:'KL',
+    scores:{ transport:6.0, publicspace:6.5, cleanliness:7.0, costliving:8.0, econScale:5.5, econResilience:6.5, entertainment:6.0, openness:7.5, heritage:7.0 },
+    gap:1,
+    gapNote:{ marketing:'Kerala\'s capital, education hub, emerging tech city.', reality:'Accurate and measured. Technopark is real. The IT ambitions are progressing. Not oversold — no one comes to Trivandrum expecting Delhi.' },
+    econNote:{ scale:'Technopark/Technocity IT base, government employment, healthcare, tourism. Small but genuine.', resilience:'Government + IT + tourism + remittance provides reasonable cushioning. Gulf dependency a residual risk. More stable than its size might suggest.' },
+    notes:{
+      transport:'City buses functional. No metro yet — Silver Line project politically stalled. KSRTC inter-city network excellent. Relatively walkable in core Kowdiar-Palayam belt. Suburban areas need improvement.',
+      publicspace:'Kanakakunnu Palace grounds, Shanghumugham Beach, Veli, Napier Museum gardens. Free access. Reasonable maintenance. Smaller scale than Cochin\'s Marine Drive but consistent.',
+      cleanliness:'Kerala standard — notably better than national average. Drainage issues in Peroorkada and outer areas. Padmanabhaswamy temple area immaculate. Honest performance, not showcase performance.',
+      costliving:'Excellent. Government hospital network genuinely world-class — SAT Hospital, AIIMS Thiruvananthapuram accessible to working population. Public schools functional. Rent-to-income ratio among India\'s best.',
+      entertainment:'Padmanabhaswamy temple culture rich and living. Kerala cuisine. Some theatre, Kathakali. Sree Chitra Art Gallery. Very limited nightlife. Proximity to Kovalam, Ponmudi, Neyyar Dam adds outdoor dimension.',
+      openness:'Progressive Kerala values functional in daily life. Women\'s mobility and safety noticeably better. High literacy translates to tolerance in most contexts. Caste persists — Nair/Ezhava/Dalit dynamics visible in property, marriage, and some temple access. But the daily texture of life is more relaxed than most Indian cities of comparable size.',
+      heritage:'Padmanabhaswamy Temple — one of India\'s most spectacular and historically significant royal temples, associated with Travancore\'s unique Padmanabhadasa tradition. Kuthiramalika Palace with superb woodwork. Dutch-era remnants, colonial architecture in Palayam and East Fort. The Travancore court tradition in music and art is underappreciated nationally.'
+    },
+    verdict:'Safe, clean, educated, affordable — and underappreciated precisely because it doesn\'t overstate its case. If public services, women\'s safety, and Kerala\'s uniquely functional social infrastructure are your priorities, Trivandrum quietly outperforms cities with three times its media presence.'
+  },
+  {
+    name:'Pune', state:'Maharashtra', shortState:'MH',
+    scores:{ transport:5.0, publicspace:5.5, cleanliness:5.0, costliving:5.5, econScale:7.5, econResilience:7.5, entertainment:7.5, openness:7.5, heritage:6.5 },
+    gap:2,
+    gapNote:{ marketing:'"Oxford of the East." Progressive city. Green, educated, quality of life.', reality:'The Oxford tag is 40 years old and the infrastructure is showing it. Traffic, rising costs, and declining per-capita green space as the city grows faster than its governance can absorb.' },
+    econNote:{ scale:'Auto manufacturing, IT/ITES, defence PSUs, pharma, BFSI, engineering. Significant and growing.', resilience:'Manufacturing + IT + defence: genuinely resilient mix. EV transition risk for auto sector real but overall diversification provides cushion.' },
+    notes:{
+      transport:'Metro expanding but years behind schedule. PMPML buses crowded and unreliable. Two-wheeler dominance creates safety issues for pedestrians and cyclists. Traffic catastrophic in Kothrud-Wakad-Hinjewadi belt at peak hours.',
+      publicspace:'Parvati Hill, Empress Garden, Bund Garden decent. City expanding into green zones faster than it protects them. Mula-Mutha riverfront project promising but incomplete. Newer suburbs entirely hostile to pedestrians.',
+      cleanliness:'Cantonment areas (Koregaon Park, Boat Club) clean. Katraj, Hadapsar, Ambegaon, periphery significantly worse. Mula-Mutha river health poor. PMC garbage collection inconsistent in outer wards.',
+      costliving:'Costs rising sharply and faster than wages. 2BHK in Baner at ₹35,000+ is now unremarkable. Corporate campus effect has inflated the median. Still below Mumbai but the gap is closing in a direction that benefits no one except landlords.',
+      entertainment:'Strongest live music and comedy scene outside Mumbai-Bengaluru. Food diversity excellent. Student city energy — IIT, COEP, Fergusson, Symbiosis bring intellectual diversity. German Bakery area cultural tradition. Proximity to Lonavala, Mahabaleshwar, Alibaug adds quality outdoor dimension.',
+      openness:'Large student and expat population creates genuine cosmopolitanism. LGBTQ+ community increasingly visible. Strong civil society tradition from Phule-Ambedkar-Gokhale legacy that is real, not just historical. Peth areas and certain Brahmin cultural institutions more conservative.',
+      heritage:'Shaniwar Wada, Aga Khan Palace, Sinhagad Fort, Rajgad within reach. Peshwa-era Pune is a serious historical chapter in Maratha history. The city also carries the Phule-Ambedkar social reform tradition as living heritage — not stone monuments but intellectual and political history that shaped modern India.'
+    },
+    verdict:'Pune has a window — maybe a decade — to make the right infrastructure choices before it replicates Bengaluru\'s trajectory. The economic base is strong, the social culture genuinely open, the entertainment ecosystem real. The warning signs are also identical to early-2000s Bengaluru, and the political will to act on them appears similarly insufficient.'
+  },
+  {
+    name:'Coimbatore', state:'Tamil Nadu', shortState:'TN',
+    scores:{ transport:5.0, publicspace:5.5, cleanliness:6.5, costliving:8.0, econScale:6.5, econResilience:8.5, entertainment:5.5, openness:5.5, heritage:5.0 },
+    gap:1,
+    gapNote:{ marketing:'"Manchester of South India." Industrial powerhouse. Wellness destination (Isha).', reality:'The industrial tag is earned and honest. Not an oversold city — nobody arrives expecting Mysore Palace or Bengaluru pubs.' },
+    econNote:{ scale:'Textile machinery, pumps, motors, wet grinders — globally competitive manufacturing niches. Growing IT presence. Significant for city size, mid-scale overall.', resilience:'Perhaps India\'s most recession-proof city economy. Specialised industrial clusters serving essential global manufacturing needs — people need pumps and motors regardless of macro cycle. The 2008 crisis, demonetisation, COVID each hit Coimbatore far less than tech-dependent cities.' },
+    notes:{
+      transport:'No metro. Town buses functional. Suburban rail limited. Air connectivity improved — direct flights to major cities now. Largely two-wheeler and auto city.',
+      publicspace:'VOC Park, Ukkadam Lakes, Perur temple surroundings. Functional rather than exceptional. Neighbourhood parks adequate. No grand civic spaces. Nilgiris proximity is a compensating factor.',
+      cleanliness:'Consistently above Tamil Nadu average in residential areas. Industrial emissions in Kurichi and Singanallur belts a real concern. Noyyal river health poor — a significant and underreported environmental failure. Residential and commercial areas maintained well.',
+      costliving:'Among the best rent-to-income ratios in India for a city with this level of economic activity. PSG hospitals, Kovai Medical, KG Hospital — excellent private healthcare at affordable cost. Good vegetarian food at exceptional value.',
+      entertainment:'Adiyogi at Isha Yoga Centre is a world-scale attraction that draws genuine global visitors. Tamil cultural tradition. Nilgiris and Ooty within 90 minutes for outdoor options. Limited urban nightlife and arts scene — honestly poor for a city this size.',
+      openness:'Conservative Kongu Vellala Gounder community social norms dominant. Hindutva political presence more visible than many Tamil cities — Coimbatore has a history of communal incidents that cannot be papered over with economic pride. Better than North Indian cities but a real and honest marker.',
+      heritage:'Limited within city limits. Marudamalai temple, Perur Pateeswarar temple of note. Kongu Nadu pre-history underexcavated architecturally. Not a heritage destination and honest about it.'
+    },
+    verdict:'India\'s most economically resilient mid-sized city. The industrial DNA is real, globally connected, and recession-tested across multiple crises. Deeply unglamorous and honest about it. If economic security and low cost of living are your primary criteria, Coimbatore delivers where flashier cities accumulate structural debt.'
+  },
+  {
+    name:'Chandigarh', state:'Punjab/Haryana', shortState:'UT',
+    scores:{ transport:5.5, publicspace:9.0, cleanliness:7.5, costliving:6.5, econScale:4.5, econResilience:5.5, entertainment:5.5, openness:6.0, heritage:5.5 },
+    gap:2,
+    gapNote:{ marketing:'Best planned city in India. Cleanest city. Highest per capita income. Le Corbusier\'s vision.', reality:'Planning is 70 years old and the city has not evolved it. Per capita income elevated by government salaries and NRI real estate. Public space and cleanliness claims are genuine.' },
+    econNote:{ scale:'Government employment, trade, proximity economy to Delhi NCR. No significant industrial or tech base of own.', resilience:'Government employment provides a stability floor but the economic base is narrow. Vulnerable to boundary disputes, capital status changes, and any shift in central government priorities.' },
+    notes:{
+      transport:'CTU buses exist but frequency and coverage poor. No metro. The Le Corbusier grid theoretically enables cycling — in practice it doesn\'t because cycling infrastructure was never built. Very car-dependent despite having the physical layout that should make it unnecessary.',
+      publicspace:'Unmatched in India and genuinely competitive globally. Rose Garden among Asia\'s largest. Sukhna Lake. Rock Garden (Nek Chand\'s work is internationally recognised outsider art of genuine significance). Every sector has a park. Le Corbusier\'s public space planning actually delivered, which makes it all the more frustrating that transport planning failed.',
+      cleanliness:'Genuine. Wide roads, functional drains, regular sweeping, visible civic pride. Among the most credible Swachh Bharat performances in the country.',
+      costliving:'Good but government-salary inflated. Private sector wages lower than tech metros. Real estate prices rising sharply due to NRI and NCR spillover demand — pricing out local working population in newer sectors.',
+      entertainment:'Rock Garden is world-class. Sector 17 plaza, Elante Mall. Proximity to Shimla, Kasauli, Dharamshala compensates for limited urban entertainment. Essentially a government town with corresponding leisure culture.',
+      openness:'Better than Punjab/Haryana rural norms but carries the social conservatism of both states. Gender dynamics in road culture and nightlife visible. Improving in younger generation but structural social conservatism remains.',
+      heritage:'Le Corbusier\'s Capitol Complex — High Court, Secretariat, Assembly — is UNESCO-recognised and architecturally significant globally. A different kind of heritage: modernist, planned, 70 years old. Lacks the millennia of layering that marks India\'s great heritage cities, but the heritage it has is genuine.'
+    },
+    verdict:'The best-planned city in India — though the plan is 70 years old and the city has not grown its vision to match its growth. The public space is genuinely extraordinary. But Chandigarh is a government town with thin economic legs, and its social culture carries the weight of both Punjab and Haryana without quite resolving either.'
+  },
+  {
+    name:'Bangalore', state:'Karnataka', shortState:'KA',
+    scores:{ transport:5.0, publicspace:4.5, cleanliness:4.0, costliving:4.5, econScale:9.5, econResilience:6.5, entertainment:8.5, openness:8.5, heritage:5.5 },
+    gap:3,
+    gapNote:{ marketing:'"Silicon Valley of India." Start-up capital. Garden city. Global city. Innovation hub.', reality:'Severe and widening gap. The garden city is largely memory — tree cover has halved since 1990. The global city narrative coexists with infrastructure a tier-3 European city would be ashamed of. Pothole deaths are a recorded statistic. Lakes catch fire from methane buildup. The marketing gap here is India\'s widest.' },
+    econNote:{ scale:'India\'s largest tech economy by significant margin. Deep MNC presence (Google, Microsoft, Amazon, Goldman tech), aerospace, biotech, manufacturing hinterland. Extraordinary scale.', resilience:'Deeply correlated — IT services, IT product, and venture-backed startups all contract together in a global tech slowdown. 2022-23 layoffs visibly hit Bengaluru restaurants, real estate, and retail in ways that Chennai and Hyderabad didn\'t experience. Aerospace and manufacturing provide some cushion but the tech monoculture is a structural vulnerability.' },
+    notes:{
+      transport:'Metro excellent but covers perhaps 20% of where people actually need to go. BMTC buses function but traffic makes journey times unpredictable by up to 300%. Roads are a governance failure — pothole deaths reported annually. Rain events convert roads to waterways. The gap between metro quality and everything else is India\'s widest.',
+      publicspace:'Lalbagh and Cubbon Park are genuinely world-class — and are islands in a concrete sea. Lakes encroached, converted to sewage sumps, or surrounded by inaccessible roads. Most new residential areas entirely hostile to pedestrians. The "garden city" brand is now primarily nostalgia among people over 50.',
+      cleanliness:'Deeply poor outside showcase areas. Bellandur and Varthur lakes produce toxic foam that catches fire — documented internationally, not a fringe claim. SWM patchy in outer wards. Air quality declining as the city expands. The distance between the brand and the reality is the defining characteristic of modern Bengaluru.',
+      costliving:'Rapidly unjustifiable by any honest measure. 2BHK in Whitefield at ₹45,000–60,000/month for infrastructure comparable to a tier-2 city. When commute time (2–3 hours per day average, documented in surveys) is priced as quality of life cost, the value proposition collapses for all but the highest earners.',
+      entertainment:'Outstanding and honest strength — the one dimension where the marketing matches reality. Craft beer culture, live music (multiple dedicated venues), stand-up comedy ecosystem, food diversity among India\'s best, gaming community, outdoor running culture. Genuinely world-class for India and this is earned.',
+      openness:'India\'s most genuinely cosmopolitan city and this score is earned. LGBTQ+ most visible. Mixed-religion and mixed-region couples common. Pub culture normalised. Cross-regional mixing real, not performative. The openness score is the strongest honest positive the city can claim.',
+      heritage:'Tipu Sultan\'s Fort, Vidhana Soudha as civic heritage, Bangalore Palace. But the city actively erases heritage faster than it documents it — Pete area old market lanes demolished, old bungalows replaced by apartments, lakes drained and built over. What heritage exists is in spite of the city\'s development logic, not because of it.'
+    },
+    verdict:'Extraordinary if you are in the top income decile and work in tech. An infrastructure catastrophe for everyone else, including the vast majority of its own residents. The economic scale and social openness are real and significant. Everything else — roads, lakes, air, cost — represents a city consuming its own foundations while the marketing machine describes the city it used to be.'
+  },
+  {
+    name:'New Delhi', state:'Delhi NCT', shortState:'DL',
+    scores:{ transport:7.5, publicspace:5.0, cleanliness:3.0, costliving:4.5, econScale:7.5, econResilience:6.5, entertainment:8.0, openness:4.5, heritage:9.0 },
+    gap:3,
+    gapNote:{ marketing:'World-class metro. India\'s capital. Smart City. Global city. Heritage destination.', reality:'Severe gap. The metro is genuinely excellent. The AQI is a public health emergency that epidemiological studies link to measurably shortened lifespans. The Yamuna is biologically dead. Official rankings consistently disguise what is an environmental catastrophe.' },
+    econNote:{ scale:'Trade, media, government, wholesale markets (Chandni Chowk scale), NCR manufacturing, BFSI. Massive through NCR extension.', resilience:'Reasonably diversified across NCR — not dominated by single sector. Government employment provides stability floor. But heavily dependent on policy continuity given government concentration.' },
+    notes:{
+      transport:'Delhi Metro is India\'s finest metro system — clean, punctual, air-conditioned, extensive, affordable. DTC buses improving. But: AQI makes cycling dangerous for 4–5 months annually, and traffic outside metro catchment remains catastrophic. The metro is real; the last mile is not.',
+      publicspace:'Lodi Garden, Deer Park, India Gate lawns excellent and genuinely multi-class. But outer Delhi — Uttam Nagar, Dwarka, North East Delhi, Sangam Vihar — has minimal green space. Access to good public space is deeply geography-dependent and therefore class-dependent.',
+      cleanliness:'The honest score. Annual AQI emergency documented at 10–15× WHO limits in winter months. PM2.5 levels are among the worst of any global megacity. Yamuna is clinically dead — dissolved oxygen near zero in stretches. Open defecation persists in JJ clusters. This is a public health catastrophe, not a ranking category to be balanced against good metro scores.',
+      costliving:'South Delhi and Gurugram deeply expensive. When pollution-related healthcare costs (documented in epidemiological literature) are factored in, real cost of living is higher than nominal numbers suggest. Air purifiers, increased respiratory illness, reduced outdoor mobility — these are costs that official cost-of-living indices do not capture.',
+      entertainment:'Hauz Khas Village, Connaught Place, Khan Market, Dilli Haat, international artists, comedy, club culture, cuisine diversity from across India and internationally. Second only to Mumbai in range and scale. The entertainment infrastructure is a genuine strength.',
+      openness:'Deeply complex and cannot be scored generously. Cosmopolitan in the sense that all of India\'s communities are present. But: gender safety record is India\'s worst among major cities by significant margin — this is documented, not anecdotal. Caste and religious tensions sharp and periodically violent. Political polarisation active. For women, minorities, and LGBTQ+ individuals, the lived experience diverges significantly from the cosmopolitan surface.',
+      heritage:'Unparalleled in India. Seven historical cities layered over each other. Qutb Minar (13th century), Humayun\'s Tomb (UNESCO, 16th century), Red Fort, Lodhi tombs, Mehrauli Archaeological Park, Tughlaqabad, Purana Qila — the density of monuments from multiple empires is extraordinary. India\'s heritage capital without serious challenge.'
+    },
+    verdict:'Extraordinary heritage and economic weight, world-class metro, India\'s finest entertainment ecosystem — wrapped inside an environmental emergency. The AQI is not a statistic; epidemiological studies show measurable life-years lost by Delhi residents relative to comparable populations. A city where the powerful live well in filtered air and the majority absorb the cost. The marketing vs reality gap is among India\'s widest.'
+  },
+  {
+    name:'Bombay', state:'Maharashtra', shortState:'MH',
+    scores:{ transport:7.5, publicspace:4.0, cleanliness:4.0, costliving:2.5, econScale:9.5, econResilience:8.5, entertainment:9.0, openness:8.0, heritage:7.5 },
+    gap:2,
+    gapNote:{ marketing:'"Maximum city." Financial capital. City of dreams. Most cosmopolitan. Never sleeps.', reality:'Economic and cosmopolitan claims accurate. "City of dreams" is a class-specific narrative — the dreams belong to those who can afford to stay long enough to realise them. The median Mumbai resident lives in conditions the marketing never describes.' },
+    econNote:{ scale:'BSE, SEBI, HQ of all major Indian banks, insurance, Bollywood, port, fashion, media. India\'s financial capital beyond dispute.', resilience:'Most diversified of any Indian city: finance, entertainment, port, media, manufacturing (in MMR), pharma (Thane-Belapur corridor). No single shock removes the economic base. Genuinely the most resilient large city economy in India.' },
+    notes:{
+      transport:'Local train network: India\'s greatest public transport achievement — extraordinary capacity, democratic access, affordable, used by all classes. Metro expanding. But the trains operate at inhumane crush loads — overcrowding deaths are a recorded statistic. The system is heroic and broken simultaneously.',
+      publicspace:'Marine Drive, Bandra Bandstand, Juhu Beach genuinely public, used across all class lines, free. But Mumbai has among the lowest park area per capita of any global megacity. There is almost nowhere to sit in most residential neighbourhoods. The waterfront access is real; the neighbourhood public space is not.',
+      cleanliness:'Dharavi, Kurla, Mankhurd, Govandi — massive, documented hygiene crises. Mithi river is an ecological disaster — it was the primary cause of the 2005 flood deaths. Even affluent areas like Andheri and Bandra have dirty footpaths and open drains. The gap between Malabar Hill and Govandi is one of the most extreme in any Indian city.',
+      costliving:'India\'s worst by a significant margin and not close. 2BHK in Andheri at ₹65,000–85,000/month. Commute time (1.5–2.5 hours each way is common) is an invisible but real quality-of-life cost. A nurse, a teacher, a police officer cannot afford to live within 30km of their workplace. The city has externalized its workforce to distant suburbs at enormous personal cost.',
+      entertainment:'The benchmark for India — and by any standard a world-class entertainment city. Bollywood production ecosystem, NCPA, Prithvi Theatre, live music venues, international touring acts, food from every Indian state and many international cuisines, bar culture, fashion week, art galleries. No Indian city competes in range or depth.',
+      openness:'Most cosmopolitan Indian city by most honest measures. All communities, all of India, coexist in daily functional proximity. LGBTQ+ most visible after Bengaluru. The 1992-93 riots are historical fact and shaped residential geography in ways still visible — but daily coexistence is mostly functional.',
+      heritage:'CST Station (UNESCO) is architecturally extraordinary. The Marine Drive art deco ensemble is the world\'s second largest after Miami — underappreciated internationally. Gateway of India, Kala Ghoda, Horniman Circle, Fort district, Bandra\'s Portuguese churches, Dharavi as heritage of urban resilience and ingenuity. More layering than the "maximum city" narrative acknowledges.'
+    },
+    verdict:'Mumbai delivers more of everything except space, cleanliness, and affordability. It charges a severe premium — in rent, commute hours, and quality of life — for opportunities that are genuinely real. The economic scale and entertainment ecosystem are world-class without qualification. The cost-to-living ratio, for anyone outside the top two income deciles, is increasingly a case of irrational attachment over rational choice.'
+  },
+  {
+    name:'Ahmedabad', state:'Gujarat', shortState:'GJ',
+    scores:{ transport:6.5, publicspace:5.5, cleanliness:6.5, costliving:7.0, econScale:7.5, econResilience:7.5, entertainment:4.0, openness:3.5, heritage:7.5 },
+    gap:3,
+    gapNote:{ marketing:'"Vibrant Gujarat." Business-friendly. World Heritage City. Clean and developed. GIFT City global finance.', reality:'Serious gap specifically on openness and social safety. The business-friendly and heritage claims are largely accurate. The city\'s communal geography — a direct consequence of 2002 — is systematically absent from promotional narratives.' },
+    econNote:{ scale:'Textiles, pharma, chemicals, diamond trading (Surat-linked), GIFT City finance ambitions, petrochemicals. Large and diversified.', resilience:'Industrial diversification across multiple non-correlated sectors gives real resilience. GIFT City remains more aspiration than delivery but the industrial base is solid.' },
+    notes:{
+      transport:'Janmarg BRTS: one of India\'s best designed bus rapid transit systems — dedicated lanes enforced, frequency decent, network coverage reasonable. Metro operational. Still car-heavy in newer western areas. Overall one of the better non-metro city transport systems.',
+      publicspace:'Sabarmati Riverfront is impressive infrastructure — but the access debate is real: kite-flying restrictions, displacement of fishing and dhobi communities, fencing of previously open areas. Kankaria Lake renovated and well-maintained. Functional rather than democratically accessible.',
+      cleanliness:'Relatively clean by west Indian standards. Swachh Bharat rankings credible here in ways they are not for many cities. Naroda and Vatva industrial zones have documented contamination history from chemical effluents.',
+      costliving:'Good value. Housing affordable. Business costs low. Dry state paradoxically reduces some social spending categories. Healthcare decent. Vegetarian food culture means excellent value at street level.',
+      entertainment:'Severely and honestly limited. Dry state eliminates bar and pub culture entirely — an entire social infrastructure category disappears. Navratri is spectacular. Kite Festival is genuinely world-class in scale. Otherwise: malls, parks, temples, restaurants. The entertainment poverty relative to city size is real and should not be minimised.',
+      openness:'The honest score and it is the hardest in this index to assign. The 2002 pogrom shaped residential geography in ways that persist and are documented — Muslim-majority areas, segregated housing markets, minority communities calculating safety in specific neighbourhoods. Dalit communities face documented structural discrimination. Women\'s safety better than Delhi average but significant incidents recorded. These are not historical footnotes — they are present conditions that affect how large portions of the city\'s population experience daily life.',
+      heritage:'Walled city is UNESCO World Heritage — pol houses, stepwells (Adalaj, Dada Hari), Jama Masjid, Sidi Saiyyed Mosque with its famous jali. Sabarmati Ashram. The Sultanate-era and Mughal-era architecture is genuinely extraordinary. This heritage score is assigned on architectural and historical merit, with the openness penalty placed where it belongs — in the openness dimension.'
+    },
+    verdict:'Economically competent and historically extraordinary — the walled city heritage alone would justify visiting. But the openness score is a hard floor that no economic or heritage achievement can paper over. A city where significant portions of the population navigate daily life with a safety calculus that should be disqualifying in any honest ranking. The dry state status is not a moral judgement but a measurable quality-of-life limitation.'
+  }
+];
+
+const DIM_KEYS = ['transport','publicspace','cleanliness','costliving','econScale','econResilience','entertainment','openness','heritage'];
+const DIM_LABELS = ['Transport','Public Space','Cleanliness','Cost vs Life','Econ Scale','Econ Resilience','Leisure','Openness','Heritage'];
+const DIM_SHORT = ['TR','PS','CL','CV','ES','ER','LE','OP','HE'];
+
+function computeTotal(c) {
+  const econ = (c.scores.econScale + c.scores.econResilience) / 2;
+  const dims = [c.scores.transport, c.scores.publicspace, c.scores.cleanliness,
+                c.scores.costliving, econ, c.scores.entertainment,
+                c.scores.openness, c.scores.heritage];
+  return Math.round((dims.reduce((a,b)=>a+b,0)/dims.length)*10)/10;
+}
+
+cities.forEach(c => { c.total = computeTotal(c); });
+
+let currentSort = 'total';
+
+function scoreColor(s) {
+  if (s >= 7.5) return 'var(--good)';
+  if (s >= 5.5) return 'var(--mid)';
+  return 'var(--poor)';
+}
+function scoreClass(s) {
+  if (s >= 7.5) return 'good';
+  if (s >= 5.5) return 'mid';
+  return 'poor';
+}
+function heatBg(s) {
+  if (s >= 8.5) return '#1a5c38';
+  if (s >= 7.5) return '#2a7a4a';
+  if (s >= 6.5) return '#4a9a6a';
+  if (s >= 5.5) return '#8b6a2a';
+  if (s >= 4.5) return '#b8882a';
+  if (s >= 3.5) return '#8b2a2a';
+  return '#6a1a1a';
+}
+function gapClass(g) { return ['','gap-low','gap-mid','gap-high'][g]; }
+function gapLabel(g) { return ['','LOW GAP','MED GAP','HIGH GAP'][g]; }
+
+function getSorted() {
+  return [...cities].sort((a,b) => {
+    if (currentSort === 'total') return b.total - a.total;
+    if (currentSort === 'gap') return b.gap - a.gap;
+    return b.scores[currentSort] - a.scores[currentSort];
+  });
+}
+
+function renderList() {
+  const sorted = getSorted();
+  const container = document.getElementById('list-view');
+  container.innerHTML = '';
+  sorted.forEach((city, idx) => {
+    const rank = idx + 1;
+    const rankClass = rank===1?'r1':rank===2?'r2':rank===3?'r3':'';
+    const totalPct = (city.total/10)*100;
+    const card = document.createElement('div');
+    card.className = 'city-card';
+
+    const miniPips = DIM_KEYS.map((k,i) => {
+      const s = city.scores[k];
+      return `<div class="mini-pip" style="background:${heatBg(s)};color:white" title="${DIM_LABELS[i]}: ${s}">${DIM_SHORT[i]}</div>`;
+    }).join('');
+
+    const dimsHtml = DIM_KEYS.map((key, i) => {
+      if (key === 'econResilience') return '';
+      if (key === 'econScale') {
+        const rs = city.scores.econResilience;
+        const s = city.scores.econScale;
+        return `<div class="dim-block economy-block">
+          <div class="dim-header"><span class="dim-name">Economy</span></div>
+          <div class="econ-subsplit">
+            <div class="econ-sub">
+              <div class="econ-sub-label">Scale</div>
+              <div class="econ-sub-score" style="color:${scoreColor(s)}">${s}</div>
+              <div class="econ-sub-bar"><div class="econ-sub-bar-fill" style="width:${(s/10)*100}%;background:${scoreColor(s)}"></div></div>
+            </div>
+            <div class="econ-sub">
+              <div class="econ-sub-label">Resilience</div>
+              <div class="econ-sub-score" style="color:${scoreColor(rs)}">${rs}</div>
+              <div class="econ-sub-bar"><div class="econ-sub-bar-fill" style="width:${(rs/10)*100}%;background:${scoreColor(rs)}"></div></div>
+            </div>
+          </div>
+          <div class="dim-note"><strong>Scale:</strong> ${city.econNote.scale}<br><strong>Resilience:</strong> ${city.econNote.resilience}</div>
+        </div>`;
+      }
+      const s = city.scores[key];
+      return `<div class="dim-block">
+        <div class="dim-header">
+          <span class="dim-name">${DIM_LABELS[i]}</span>
+          <span class="dim-score ${scoreClass(s)}">${s}</span>
+        </div>
+        <div class="dim-bar-track"><div class="dim-bar-fill" style="width:${(s/10)*100}%;background:${scoreColor(s)}"></div></div>
+        <div class="dim-note">${city.notes[key]}</div>
+      </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="rank-col"><div class="rank-num ${rankClass}">${rank}</div></div>
+        <div class="city-info">
+          <div class="city-name">${city.name}</div>
+          <div class="city-tags">
+            <span class="city-state-tag">${city.state}</span>
+            <span class="gap-badge ${gapClass(city.gap)}">${gapLabel(city.gap)}</span>
+          </div>
+        </div>
+        <div class="score-panel">
+          <div class="total-score-big" style="color:${scoreColor(city.total)}">${city.total}</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${totalPct}%"></div></div>
+          <div class="mini-scores">${miniPips}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="verdict-strip">${city.verdict}</div>
+        <div class="gap-section">
+          <div class="gap-block"><div class="gap-title">📣 Marketing Narrative</div><div class="gap-text">${city.gapNote.marketing}</div></div>
+          <div class="gap-block"><div class="gap-title">🔍 Ground Reality</div><div class="gap-text">${city.gapNote.reality}</div></div>
+        </div>
+        <div class="dims-section">${dimsHtml}</div>
+      </div>`;
+
+    card.querySelector('.card-header').addEventListener('click', () => card.classList.toggle('expanded'));
+    container.appendChild(card);
+  });
+}
+
+function renderHeatmap() {
+  const sorted = getSorted();
+  const table = document.getElementById('heatmap-table');
+  const headers = ['#','City','Total',...DIM_LABELS,'Gap'];
+  const thead = `<thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`;
+  const rows = sorted.map((city,idx) => {
+    const dimCells = DIM_KEYS.map(k => {
+      const s = city.scores[k];
+      return `<td style="background:${heatBg(s)};color:white">${s}</td>`;
+    }).join('');
+    return `<tr>
+      <td class="city-td" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;padding-left:0.75rem">${idx+1}</td>
+      <td class="city-td">${city.name} <span style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted)">${city.shortState}</span></td>
+      <td class="total-td" style="background:${heatBg(city.total)};color:white">${city.total}</td>
+      ${dimCells}
+      <td class="gap-td ${gapClass(city.gap)}">${gapLabel(city.gap)}</td>
+    </tr>`;
+  }).join('');
+  table.innerHTML = thead + `<tbody>${rows}</tbody>`;
+}
+
+function sortBy(key, btn) {
+  currentSort = key;
+  document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+  renderHeatmap();
+}
+
+function setView(v, btn) {
+  document.getElementById('list-view').style.display = v==='list'?'block':'none';
+  document.getElementById('radar-view').style.display = v==='heatmap'?'block':'none';
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+renderList();
+renderHeatmap();
+</script>
+</body>
+</html>
